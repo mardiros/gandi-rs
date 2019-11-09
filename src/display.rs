@@ -42,3 +42,13 @@ pub fn add_subcommand_options<'a, 'b>(app: App<'a, 'b>) -> App<'a, 'b> {
 pub fn print_info(key: &str, val: &str) {
     println!("{}: {}", key.bright_blue(), val.green());
 }
+
+/// Helper to print line with color in the human format
+pub fn print_flag(key: &str, val: bool) {
+    if val {
+        println!("{}: {}", key.bright_blue(), "active".bright_green());
+    }
+    else {
+        println!("{}: {}",  key.bright_blue(), "inactive".red());
+    }
+}

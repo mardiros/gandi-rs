@@ -9,10 +9,14 @@ use super::super::errors::GandiResult;
 use super::super::user_agent::get_client;
 use super::super::display::{Format, add_subcommand_options, print_info};
 
-pub const ROUTE: &str = "/v5/organization/user-info";
-pub const COMMAND: &str = "user-info";
+/// endpoint of the route.
+const ROUTE: &str = "/v5/organization/user-info";
+/// CLAP first sub command name.
+const COMMAND_GROUP: &str = "get";
+/// CLAP second sub command name.
+const COMMAND: &str = "user-info";
 
-/// User Info format, returned by the API
+/// User Information format, returned by the API
 #[derive(Debug, Serialize, Deserialize)]
 struct UserInfo {
     /// the sharing id of the user.
@@ -71,7 +75,7 @@ fn display_result(user_info: UserInfo, format: Format) -> GandiResult<()> {
 }
 
 /// Process the http request and display the result.
-fn user_info(format: Format) -> GandiResult<()> {
+fn process(format: Format) -> GandiResult<()> {
     let mut resp = get_client(ROUTE).send()?;
     let user_info: UserInfo = resp.json()?;
     display_result(user_info, format)?;
@@ -85,12 +89,12 @@ pub fn subcommand<'a, 'b>() -> App<'a, 'b> {
 
 /// Process the operation in case the matches is processable.
 pub fn handle(matches: &ArgMatches) -> GandiResult<bool> {
-    if matches.is_present("get") {
-        let subcommand = matches.subcommand_matches("get").unwrap();
+    if matches.is_present(COMMAND_GROUP) {
+        let subcommand = matches.subcommand_matches(COMMAND_GROUP).unwrap();
         if subcommand.is_present(COMMAND) {
             let params = subcommand.subcommand_matches(COMMAND).unwrap();
             let format = Format::from(params);
-            user_info(format)?;
+            process(format)?;
             return Ok(true);
         }
     }

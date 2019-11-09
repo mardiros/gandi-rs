@@ -18,6 +18,7 @@ mod user_agent;
 
 use self::errors::GandiResult;
 use api::user_info;
+use api::domain_list;
 
 /// Parse Command line and run appropriate command.
 fn run() -> GandiResult<()> {
@@ -30,8 +31,14 @@ fn run() -> GandiResult<()> {
                 .about("Used to retrieve informations")
                 .subcommand(user_info::subcommand()),
         )
+        .subcommand(
+            SubCommand::with_name("list")
+                .about("Used to retrieve informations")
+                .subcommand(domain_list::subcommand()),
+        )
         .get_matches();
 
+    domain_list::handle(&matches)?;
     user_info::handle(&matches)?;
 
     Ok(())

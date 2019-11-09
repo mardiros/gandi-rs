@@ -1,9 +1,9 @@
 use reqwest::header;
 
-use super::constants::{APIKEY, ENDPOINT, NAME, VERSION};
+use super::constants::{APIKEY, ENDPOINT, VERSION};
 
 pub fn user_agent() -> String {
-    format!("{}/{}", NAME, VERSION)
+    format!("{}/{}", env!("CARGO_PKG_NAME"), VERSION)
 }
 
 pub fn construct_headers() -> header::HeaderMap {
