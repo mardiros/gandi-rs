@@ -12,18 +12,17 @@ mod constants;
 mod display;
 /// error and result wrapping
 mod errors;
+/// params in the CLI that are send to ReqwestBuilder
+mod filter;
 /// serde helpers
 mod formatter;
-/// pagination CLI arguments
-mod pagination;
-/// sharing_id parameter
-mod sharing_id;
 /// http user agent helpers
 mod user_agent;
 
 use self::errors::GandiResult;
 use api::domain_check;
 use api::domain_list;
+use api::organization_list;
 use api::user_info;
 
 /// Parse Command line and run appropriate command.
@@ -45,12 +44,14 @@ fn run() -> GandiResult<()> {
         .subcommand(
             SubCommand::with_name("list")
                 .about("Used to retrieve informations")
-                .subcommand(domain_list::subcommand()),
+                .subcommand(domain_list::subcommand())
+                .subcommand(organization_list::subcommand()),
         )
         .get_matches();
 
     domain_check::handle(&matches)?;
     domain_list::handle(&matches)?;
+    organization_list::handle(&matches)?;
     user_info::handle(&matches)?;
 
     Ok(())

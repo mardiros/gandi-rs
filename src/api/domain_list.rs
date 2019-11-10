@@ -12,9 +12,9 @@ use super::super::display::{add_subcommand_options, print_flag, print_info, Form
 use super::super::errors::{GandiError, GandiResult};
 use super::super::formatter::date_formatter_z;
 use super::super::formatter::optional_date_formatter_z;
-use super::super::pagination::{add_subcommand_options as add_pagination_options, Pagination};
-use super::super::sharing_id::{add_subcommand_options as add_sharing_id_options, SharingSpace};
-use super::super::user_agent::get_client;
+use super::super::filter::pagination::{add_subcommand_options as add_pagination_options, Pagination};
+use super::super::filter::sharing_id::{add_subcommand_options as add_sharing_id_options, SharingSpace};
+use super::super::user_agent::get_reqwest;
 
 pub const ROUTE: &str = "/v5/domain/domains";
 pub const COMMAND_GROUP: &str = "list";
@@ -168,7 +168,7 @@ fn display_result(domains: Vec<Domain>, total_count: &str, format: Format) -> Ga
 
 /// Process the http request and display the result.
 fn process(sharing_space: SharingSpace, pagination: Pagination, format: Format) -> GandiResult<()> {
-    let req = get_client(ROUTE);
+    let req = get_reqwest(ROUTE);
     let req = pagination.build_req(req);
     let req = sharing_space.build_req(req);
     let mut resp = req.send()?;

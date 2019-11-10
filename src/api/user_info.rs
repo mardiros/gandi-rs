@@ -7,7 +7,7 @@ use serde_yaml;
 use toml;
 
 use super::super::errors::GandiResult;
-use super::super::user_agent::get_client;
+use super::super::user_agent::get_reqwest;
 use super::super::display::{Format, add_subcommand_options, print_info};
 
 /// endpoint of the route.
@@ -81,7 +81,7 @@ fn display_result(user_info: UserInfo, format: Format) -> GandiResult<()> {
 
 /// Process the http request and display the result.
 fn process(format: Format) -> GandiResult<()> {
-    let mut resp = get_client(ROUTE).send()?;
+    let mut resp = get_reqwest(ROUTE).send()?;
     let user_info: UserInfo = resp.json()?;
     display_result(user_info, format)?;
     Ok(())

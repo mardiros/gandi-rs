@@ -11,7 +11,7 @@ use toml;
 use super::super::formatter::date_formatter;
 use super::super::display::{add_subcommand_options, print_info, Format};
 use super::super::errors::{GandiError, GandiResult};
-use super::super::user_agent::get_client;
+use super::super::user_agent::get_reqwest;
 
 pub const ROUTE: &str = "/v5/domain/check";
 pub const COMMAND_GROUP: &str = "check";
@@ -23,7 +23,7 @@ struct Tax {
     /// name of the tax
     name: String,
     /// type of the tax
-    #[serde(rename(deserialize = "type"))]
+    #[serde(rename(deserialize = "type", serialize="type"))]
     type_: String,
     /// tax rate in percent
     rate: f32,
@@ -164,7 +164,7 @@ fn display_result(check: DomainCheck, format: Format) -> GandiResult<()> {
 
 /// Process the http request and display the result.
 fn process(fqdn: &str, format: Format) -> GandiResult<()> {
-    let client = get_client(ROUTE).query(&[("name", fqdn)]);
+    let client = get_reqwest(ROUTE).query(&[("name", fqdn)]);
     let mut resp = client.send()?;
     if resp.status().is_success() {
         let check: DomainCheck = resp.json()?;

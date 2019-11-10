@@ -19,7 +19,7 @@ pub fn construct_headers() -> header::HeaderMap {
     headers
 }
 
-pub fn get_client(route: &str) -> reqwest::RequestBuilder {
+pub fn get_reqwest(route: &str) -> reqwest::RequestBuilder {
     let url = format!("{}{}", ENDPOINT.as_str(), route);
     let client = reqwest::Client::new();
     client.get(url.as_str()).headers(construct_headers())
