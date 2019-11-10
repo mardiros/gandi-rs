@@ -8,8 +8,8 @@ use serde_json;
 use serde_yaml;
 use toml;
 
-use super::super::date_formatter;
-use super::super::display::{add_subcommand_options, print_flag, print_info, Format};
+use super::super::formatter::date_formatter;
+use super::super::display::{add_subcommand_options, print_info, Format};
 use super::super::errors::{GandiError, GandiResult};
 use super::super::user_agent::get_client;
 

@@ -16,8 +16,8 @@ mod errors;
 mod pagination;
 /// http user agent helpers
 mod user_agent;
-/// serde helper for datetime
-mod date_formatter;
+/// serde helpers
+mod formatter;
 
 use self::errors::GandiResult;
 use api::domain_check;

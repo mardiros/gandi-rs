@@ -1,14 +1,17 @@
 //! [domains list](https://api.gandi.net/docs/domains/#get-v5-domain-domains) route binding
 use std::vec::Vec;
 
+use chrono::{DateTime, Utc};
 use clap::{App, ArgMatches, SubCommand};
 use serde::{Deserialize, Serialize};
 use serde_json;
 use serde_yaml;
 use toml;
 
+use super::super::formatter::date_formatter_z;
+use super::super::formatter::optional_date_formatter_z;
 use super::super::display::{add_subcommand_options, print_flag, print_info, Format};
-use super::super::errors::GandiResult;
+use super::super::errors::{GandiError, GandiResult};
 use super::super::pagination::{add_subcommand_options as add_pagination_options, Pagination};
 use super::super::user_agent::get_client;
 
@@ -23,6 +26,33 @@ struct NameServer {
     current: String,
     /// In the doc, but always null
     hosts: Option<Vec<String>>,
+}
+
+/// Domain's life cycle dates.
+#[derive(Debug, Serialize, Deserialize)]
+struct Dates {
+    #[serde(with = "date_formatter_z")]
+    registry_created_at: DateTime<Utc>,
+    #[serde(with = "date_formatter_z")]
+    updated_at: DateTime<Utc>,
+    #[serde(default, with = "optional_date_formatter_z")]
+    authinfo_expires_at: Option<DateTime<Utc>>,
+    #[serde(default, with = "optional_date_formatter_z")]
+    created_at: Option<DateTime<Utc>>,
+    #[serde(default, with = "optional_date_formatter_z")]
+    deletes_at: Option<DateTime<Utc>>,
+    #[serde(default, with = "optional_date_formatter_z")]
+    hold_begins_at: Option<DateTime<Utc>>,
+    #[serde(default, with = "optional_date_formatter_z")]
+    hold_ends_at: Option<DateTime<Utc>>,
+    #[serde(default, with = "optional_date_formatter_z")]
+    pending_delete_ends_at: Option<DateTime<Utc>>,
+    #[serde(default, with = "optional_date_formatter_z")]
+    registry_ends_at: Option<DateTime<Utc>>,
+    #[serde(default, with = "optional_date_formatter_z")]
+    renew_begins_at: Option<DateTime<Utc>>,
+    #[serde(default, with = "optional_date_formatter_z")]
+    restore_ends_at: Option<DateTime<Utc>>,
 }
 
 /// Domain Information Format, returned by the API
@@ -50,6 +80,9 @@ struct Domain {
 
     /// tags
     tags: Option<Vec<String>>,
+
+    /// Domain's life cycle dates
+    dates: Dates,
 
     /// flag to renew automatically the domain name before it expires
     nameserver: NameServer,
@@ -101,14 +134,22 @@ fn process(pagination: Pagination, format: Format) -> GandiResult<()> {
         .query(&[("page", pagination.page.as_str())])
         .query(&[("per_page", pagination.per_page.as_str())]);
     let mut resp = client.send()?;
-    let domains: Vec<Domain> = resp.json()?;
-    let total_count = resp
-        .headers()
-        .get("Total-Count")
-        .map(|hdr| hdr.to_str().unwrap())
-        .unwrap_or("MISSING");
-    display_result(domains, total_count, format)?;
-    Ok(())
+    if resp.status().is_success() {
+        // println!("{}", resp.text().unwrap_or("".to_string()));
+        let domains: Vec<Domain> = resp.json()?;
+        let total_count = resp
+            .headers()
+            .get("Total-Count")
+            .map(|hdr| hdr.to_str().unwrap())
+            .unwrap_or("MISSING");
+        display_result(domains, total_count, format)?;
+        Ok(())
+    } else {
+        Err(GandiError::ReqwestResponseError(
+            format!("{}", resp.status()),
+            resp.text().unwrap_or("".to_string()),
+        ))
+    }
 }
 
 /// Create the clap subcommand with its arguments.
