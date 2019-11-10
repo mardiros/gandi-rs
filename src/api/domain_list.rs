@@ -9,6 +9,7 @@ use toml;
 
 use super::super::display::{add_subcommand_options, print_flag, print_info, Format};
 use super::super::errors::GandiResult;
+use super::super::pagination::{add_subcommand_options as add_pagination_options, Pagination};
 use super::super::user_agent::get_client;
 
 pub const ROUTE: &str = "/v5/domain/domains";
@@ -93,8 +94,11 @@ fn display_result(domains: Vec<Domain>, total_count: &str, format: Format) -> Ga
 }
 
 /// Process the http request and display the result.
-fn process(format: Format) -> GandiResult<()> {
-    let mut resp = get_client(ROUTE).send()?;
+fn process(pagination: Pagination, format: Format) -> GandiResult<()> {
+    let client = get_client(ROUTE)
+        .query(&[("page", pagination.page.as_str())])
+        .query(&[("per_page", pagination.per_page.as_str())]);
+    let mut resp = client.send()?;
     let domains: Vec<Domain> = resp.json()?;
     let total_count = resp
         .headers()
@@ -107,7 +111,9 @@ fn process(format: Format) -> GandiResult<()> {
 
 /// Create the clap subcommand with its arguments.
 pub fn subcommand<'a, 'b>() -> App<'a, 'b> {
-    add_subcommand_options(SubCommand::with_name(COMMAND))
+    let subcommand = SubCommand::with_name(COMMAND);
+    let subcommand = add_pagination_options(subcommand);
+    add_subcommand_options(subcommand)
 }
 
 /// Process the operation in case the matches is processable.
@@ -117,7 +123,8 @@ pub fn handle(matches: &ArgMatches) -> GandiResult<bool> {
         if subcommand.is_present(COMMAND) {
             let params = subcommand.subcommand_matches(COMMAND).unwrap();
             let format = Format::from(params);
-            process(format)?;
+            let pagination = Pagination::from(params);
+            process(pagination, format)?;
             return Ok(true);
         }
     }

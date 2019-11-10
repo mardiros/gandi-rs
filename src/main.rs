@@ -1,7 +1,6 @@
-
 //! # Alternative Gandi ClI in rust
 
-use clap::{App,SubCommand};
+use clap::{App, SubCommand};
 use log::debug;
 use pretty_env_logger;
 
@@ -13,12 +12,14 @@ mod constants;
 mod display;
 /// error and result wrapping
 mod errors;
+/// pagination CLI arguments
+mod pagination;
 /// http user agent helpers
 mod user_agent;
 
 use self::errors::GandiResult;
-use api::user_info;
 use api::domain_list;
+use api::user_info;
 
 /// Parse Command line and run appropriate command.
 fn run() -> GandiResult<()> {
@@ -43,7 +44,6 @@ fn run() -> GandiResult<()> {
 
     Ok(())
 }
-
 
 /// Entry point of the program.
 /// The command will call the run function and set an exit code to 1
