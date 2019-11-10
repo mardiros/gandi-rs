@@ -10,6 +10,7 @@ use toml;
 
 use super::super::formatter::date_formatter;
 use super::super::display::{add_subcommand_options, print_info, Format};
+use super::super::filter::sharing_id::{add_subcommand_options as add_sharing_id_options, SharingSpace};
 use super::super::errors::{GandiError, GandiResult};
 use super::super::user_agent::get_reqwest;
 
@@ -163,9 +164,10 @@ fn display_result(check: DomainCheck, format: Format) -> GandiResult<()> {
 }
 
 /// Process the http request and display the result.
-fn process(fqdn: &str, format: Format) -> GandiResult<()> {
-    let client = get_reqwest(ROUTE).query(&[("name", fqdn)]);
-    let mut resp = client.send()?;
+fn process(fqdn: &str, sharing_space: SharingSpace, format: Format) -> GandiResult<()> {
+    let req = get_reqwest(ROUTE).query(&[("name", fqdn)]);
+    let req = sharing_space.build_req(req);
+    let mut resp = req.send()?;
     if resp.status().is_success() {
         let check: DomainCheck = resp.json()?;
         display_result(check, format)?;
@@ -186,6 +188,7 @@ pub fn subcommand<'a, 'b>() -> App<'a, 'b> {
             .required(true)
             .help("domain name to query"),
     );
+    let subcommand = add_sharing_id_options(subcommand);
     add_subcommand_options(subcommand)
 }
 
@@ -197,7 +200,8 @@ pub fn handle(matches: &ArgMatches) -> GandiResult<bool> {
             let params = subcommand.subcommand_matches(COMMAND).unwrap();
             let format = Format::from(params);
             let fqdn = params.value_of("FQDN").unwrap().to_string();
-            process(fqdn.as_str(), format)?;
+            let sharing_space = SharingSpace::from(params);
+            process(fqdn.as_str(), sharing_space, format)?;
             return Ok(true);
         }
     }
