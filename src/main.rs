@@ -12,12 +12,14 @@ mod constants;
 mod display;
 /// error and result wrapping
 mod errors;
-/// pagination CLI arguments
-mod pagination;
-/// http user agent helpers
-mod user_agent;
 /// serde helpers
 mod formatter;
+/// pagination CLI arguments
+mod pagination;
+/// sharing_id parameter
+mod sharing_id;
+/// http user agent helpers
+mod user_agent;
 
 use self::errors::GandiResult;
 use api::domain_check;

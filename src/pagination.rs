@@ -1,11 +1,21 @@
 //! Display options.
-use clap::{App, Arg, ArgMatches};
 use std::convert::From;
+
+use clap::{App, Arg, ArgMatches};
+use reqwest::RequestBuilder;
 
 /// Output format
 pub struct Pagination {
     pub page: String,
     pub per_page: String,
+}
+
+impl Pagination {
+    /// Inject the parameters of the cli in the http request
+    pub fn build_req(&self, req: RequestBuilder) -> RequestBuilder {
+        req.query(&[("page", self.page.as_str())])
+            .query(&[("per_page", self.per_page.as_str())])
+    }
 }
 
 /// Retrieve the format from the clap subcommand arguments
