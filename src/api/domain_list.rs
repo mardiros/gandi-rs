@@ -74,12 +74,14 @@ fn display_result(domains: Vec<Domain>, total_count: &str, format: Format) -> Ga
             println!("Total count of domains: {}", total_count);
             for domain in domains {
                 println!("");
+                print_info("fqdn", domain.fqdn_unicode.as_str());
                 print_info("id", domain.id.as_str());
                 print_info("organization", domain.orga_owner.as_str());
                 //print_info("sharing_id", domain.sharing_id.as_str());
-                print_info("owner", domain.owner.as_str());
-                print_info("fqdn", domain.fqdn_unicode.as_str());
-                print_info("tld", domain.tld.as_str());
+                if domain.owner != domain.orga_owner {
+                    print_info("owner", domain.owner.as_str());
+                }
+                // print_info("tld", domain.tld.as_str());
                 // print_info("nameserver", domain.nameserver.current.as_str());
                 print_flag("autorenew", domain.autorenew);
                 if let Some(tags) = domain.tags {
