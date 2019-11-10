@@ -5,6 +5,7 @@ use clap::{App, ArgMatches, SubCommand};
 use serde::{Deserialize, Serialize};
 use serde_json;
 use serde_yaml;
+use toml;
 
 use super::super::display::{add_subcommand_options, print_flag, print_info, Format};
 use super::super::errors::GandiResult;
@@ -43,13 +44,14 @@ struct Domain {
     fqdn_unicode: String,
     /// flag to renew automatically the domain name before it expires
     autorenew: bool,
-    /// flag to renew automatically the domain name before it expires
-    nameserver: NameServer,
     /// the tld of the domain
     tld: String,
 
     /// tags
     tags: Option<Vec<String>>,
+
+    /// flag to renew automatically the domain name before it expires
+    nameserver: NameServer,
 }
 
 /// Display the result for human
@@ -63,6 +65,10 @@ fn display_result(domains: Vec<Domain>, total_count: &str, format: Format) -> Ga
             let resp = serde_yaml::to_string(&domains)?;
             println!("{}", resp);
         }
+        Format::TOML => {
+            let resp = toml::to_string(&domains)?;
+            println!("{}", resp);
+        }
         Format::HUMAN => {
             println!("Total count of domains: {}", total_count);
             for domain in domains {
@@ -73,7 +79,7 @@ fn display_result(domains: Vec<Domain>, total_count: &str, format: Format) -> Ga
                 print_info("owner", domain.owner.as_str());
                 print_info("fqdn", domain.fqdn_unicode.as_str());
                 print_info("tld", domain.tld.as_str());
-                print_info("nameserver", domain.nameserver.current.as_str());
+                // print_info("nameserver", domain.nameserver.current.as_str());
                 print_flag("autorenew", domain.autorenew);
                 if let Some(tags) = domain.tags {
                     if tags.len() > 0 {

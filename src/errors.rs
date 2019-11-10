@@ -6,6 +6,8 @@ use std::fmt::{self, Display};
 use reqwest::Error as ReqwestError;
 use serde_yaml::Error as SerdeYamlError;
 use serde_json::error::Error as SerdeJsonError;
+use toml::ser::Error as TomlSerError;
+
 
 #[derive(Debug)]
 /// Errors in Gandi CLI
@@ -14,6 +16,7 @@ pub enum GandiError {
     ReqwestError(ReqwestError),
     SerdeJsonError(String),
     SerdeYamlError(String),
+    TomlSerError(String),
 }
 
 /// Result used by method that can failed.
@@ -25,6 +28,7 @@ impl Display for GandiError {
             GandiError::ReqwestError(err) => format!("ReqwestError: {}", err),
             GandiError::SerdeJsonError(err) => format!("Json Formatting Error: {}", err),
             GandiError::SerdeYamlError(err) => format!("Yaml Formatting Error: {}", err),
+            GandiError::TomlSerError(err) => format!("Toml Formatting Error: {}", err),
         };
         write!(f, "{}", description)
     }
@@ -55,5 +59,12 @@ impl From<SerdeYamlError> for GandiError {
 impl From<ReqwestError> for GandiError {
     fn from(err: ReqwestError) -> GandiError {
         GandiError::ReqwestError(err)
+    }
+}
+
+
+impl From<TomlSerError> for GandiError {
+    fn from(err: TomlSerError) -> GandiError {
+        GandiError::TomlSerError(format!("{}", err))
     }
 }

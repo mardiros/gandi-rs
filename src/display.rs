@@ -1,11 +1,12 @@
 //! Display options.
+use clap::{App, Arg, ArgMatches};
 use colored::*;
 use std::convert::From;
-use clap::{App, Arg, ArgMatches};
 
 /// Output format
 pub enum Format {
     JSON,
+    TOML,
     YAML,
     HUMAN,
 }
@@ -16,6 +17,8 @@ impl<'a> From<&'a ArgMatches<'a>> for Format {
         let mut format = Format::HUMAN;
         if params.is_present("JSON") {
             format = Format::JSON;
+        } else if params.is_present("TOML") {
+            format = Format::TOML;
         } else if params.is_present("YAML") {
             format = Format::YAML;
         }
@@ -31,9 +34,16 @@ pub fn add_subcommand_options<'a, 'b>(app: App<'a, 'b>) -> App<'a, 'b> {
             .help("Display result in json"),
     )
     .arg(
+        Arg::with_name("TOML")
+            .long("toml")
+            .conflicts_with("JSON")
+            .help("Display result in toml"),
+    )
+    .arg(
         Arg::with_name("YAML")
             .long("yaml")
             .conflicts_with("JSON")
+            .conflicts_with("TOML")
             .help("Display result in yaml"),
     )
 }
@@ -47,8 +57,7 @@ pub fn print_info(key: &str, val: &str) {
 pub fn print_flag(key: &str, val: bool) {
     if val {
         println!("{}: {}", key.bright_blue(), "active".bright_green());
-    }
-    else {
-        println!("{}: {}",  key.bright_blue(), "inactive".red());
+    } else {
+        println!("{}: {}", key.bright_blue(), "inactive".red());
     }
 }

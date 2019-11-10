@@ -4,6 +4,7 @@ use clap::{App, ArgMatches, SubCommand};
 use serde::{Deserialize, Serialize};
 use serde_json;
 use serde_yaml;
+use toml;
 
 use super::super::errors::GandiResult;
 use super::super::user_agent::get_client;
@@ -61,6 +62,10 @@ fn display_result(user_info: UserInfo, format: Format) -> GandiResult<()> {
         }
         Format::YAML => {
             let resp = serde_yaml::to_string(&user_info)?;
+            println!("{}", resp);
+        }
+        Format::TOML => {
+            let resp = toml::to_string(&user_info)?;
             println!("{}", resp);
         }
         Format::HUMAN => {
