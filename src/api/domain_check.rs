@@ -33,6 +33,7 @@ struct Tax {
 #[derive(Debug, Serialize, Deserialize)]
 struct PriceOptions {
     /// registration period: sunrise, landrush, golive
+    #[serde(skip_serializing_if = "Option::is_none")]
     period: Option<String>, // badly documented
 }
 
@@ -58,6 +59,7 @@ struct Price {
     /// duration unit the price expose it
     duration_unit: String,
     /// temporary discount prices
+    #[serde(skip_serializing_if = "Option::is_none")]
     discount: Option<bool>,
 
     /// price without taxes
@@ -80,9 +82,11 @@ struct Product {
     name: String,
 
     /// prices
+    #[serde(skip_serializing_if = "Option::is_none")]
     prices: Option<Vec<Price>>,
     /// Applied taxes if any
     taxes: Vec<Tax>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     period: Option<Vec<Period>>,
 }
 
@@ -94,6 +98,7 @@ struct DomainCheck {
     /// Gandi grid
     grid: String,
     /// products
+    #[serde(skip_serializing_if = "Option::is_none")]
     products: Option<Vec<Product>>,
 }
 

@@ -25,6 +25,7 @@ struct NameServer {
     /// Label of the nameserver (abc, livedns or other)
     current: String,
     /// In the doc, but always null
+    #[serde(skip_serializing_if = "Option::is_none")]
     hosts: Option<Vec<String>>,
 }
 
@@ -35,23 +36,59 @@ struct Dates {
     registry_created_at: DateTime<Utc>,
     #[serde(with = "date_formatter_z")]
     updated_at: DateTime<Utc>,
-    #[serde(default, with = "optional_date_formatter_z")]
+    #[serde(
+        default,
+        with = "optional_date_formatter_z",
+        skip_serializing_if = "Option::is_none"
+    )]
     authinfo_expires_at: Option<DateTime<Utc>>,
-    #[serde(default, with = "optional_date_formatter_z")]
+    #[serde(
+        default,
+        with = "optional_date_formatter_z",
+        skip_serializing_if = "Option::is_none"
+    )]
     created_at: Option<DateTime<Utc>>,
-    #[serde(default, with = "optional_date_formatter_z")]
+    #[serde(
+        default,
+        with = "optional_date_formatter_z",
+        skip_serializing_if = "Option::is_none"
+    )]
     deletes_at: Option<DateTime<Utc>>,
-    #[serde(default, with = "optional_date_formatter_z")]
+    #[serde(
+        default,
+        with = "optional_date_formatter_z",
+        skip_serializing_if = "Option::is_none"
+    )]
     hold_begins_at: Option<DateTime<Utc>>,
-    #[serde(default, with = "optional_date_formatter_z")]
+    #[serde(
+        default,
+        with = "optional_date_formatter_z",
+        skip_serializing_if = "Option::is_none"
+    )]
     hold_ends_at: Option<DateTime<Utc>>,
-    #[serde(default, with = "optional_date_formatter_z")]
+    #[serde(
+        default,
+        with = "optional_date_formatter_z",
+        skip_serializing_if = "Option::is_none"
+    )]
     pending_delete_ends_at: Option<DateTime<Utc>>,
-    #[serde(default, with = "optional_date_formatter_z")]
+    #[serde(
+        default,
+        with = "optional_date_formatter_z",
+        skip_serializing_if = "Option::is_none"
+    )]
     registry_ends_at: Option<DateTime<Utc>>,
-    #[serde(default, with = "optional_date_formatter_z")]
+    #[serde(
+        default,
+        with = "optional_date_formatter_z",
+        skip_serializing_if = "Option::is_none"
+    )]
     renew_begins_at: Option<DateTime<Utc>>,
-    #[serde(default, with = "optional_date_formatter_z")]
+    #[serde(
+        default,
+        with = "optional_date_formatter_z",
+        skip_serializing_if = "Option::is_none"
+    )]
     restore_ends_at: Option<DateTime<Utc>>,
 }
 
