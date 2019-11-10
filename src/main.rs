@@ -16,8 +16,11 @@ mod errors;
 mod pagination;
 /// http user agent helpers
 mod user_agent;
+/// serde helper for datetime
+mod date_formatter;
 
 use self::errors::GandiResult;
+use api::domain_check;
 use api::domain_list;
 use api::user_info;
 
@@ -27,6 +30,11 @@ fn run() -> GandiResult<()> {
         .version(constants::VERSION)
         .author(env!("CARGO_PKG_AUTHORS"))
         .about(env!("CARGO_PKG_DESCRIPTION"))
+        .subcommand(
+            SubCommand::with_name("check")
+                .about("Check for domain availability")
+                .subcommand(domain_check::subcommand()),
+        )
         .subcommand(
             SubCommand::with_name("get")
                 .about("Used to retrieve informations")
@@ -39,6 +47,7 @@ fn run() -> GandiResult<()> {
         )
         .get_matches();
 
+    domain_check::handle(&matches)?;
     domain_list::handle(&matches)?;
     user_info::handle(&matches)?;
 

@@ -1,5 +1,8 @@
 ///! API Bindings
 
+/// [domains check](https://api.gandi.net/docs/domains/#get-v5-domain-check) route binding
+pub mod domain_check;
+
 /// [domains list](https://api.gandi.net/docs/domains/#get-v5-domain-domains) route binding
 pub mod domain_list;
 

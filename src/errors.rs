@@ -17,6 +17,7 @@ pub enum GandiError {
     SerdeJsonError(String),
     SerdeYamlError(String),
     TomlSerError(String),
+    ReqwestResponseError(String, String),
 }
 
 /// Result used by method that can failed.
@@ -29,6 +30,7 @@ impl Display for GandiError {
             GandiError::SerdeJsonError(err) => format!("Json Formatting Error: {}", err),
             GandiError::SerdeYamlError(err) => format!("Yaml Formatting Error: {}", err),
             GandiError::TomlSerError(err) => format!("Toml Formatting Error: {}", err),
+            GandiError::ReqwestResponseError(status, err) => format!("Request Error {}: {}", status, err),
         };
         write!(f, "{}", description)
     }
