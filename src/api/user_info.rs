@@ -13,7 +13,7 @@ use super::super::display::{Format, add_subcommand_options, print_info};
 /// endpoint of the route.
 const ROUTE: &str = "/v5/organization/user-info";
 /// CLAP first sub command name.
-const COMMAND_GROUP: &str = "get";
+const COMMAND_GROUP: &str = "show";
 /// CLAP second sub command name.
 const COMMAND: &str = "user-info";
 

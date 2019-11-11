@@ -22,6 +22,7 @@ mod formatter;
 use errors::GandiResult;
 use api::domain_check;
 use api::domain_list;
+use api::domain_show;
 use api::organization_list;
 use api::user_info;
 use config::Configuration;
@@ -47,8 +48,9 @@ fn run() -> GandiResult<()> {
                 .subcommand(domain_check::subcommand()),
         )
         .subcommand(
-            SubCommand::with_name("get")
+            SubCommand::with_name("show")
                 .about("Used to retrieve informations")
+                .subcommand(domain_show::subcommand())
                 .subcommand(user_info::subcommand()),
         )
         .subcommand(
@@ -61,6 +63,7 @@ fn run() -> GandiResult<()> {
 
     let config = Configuration::from(&matches);
     domain_check::handle(&config, &matches)?;
+    domain_show::handle(&config, &matches)?;
     domain_list::handle(&config, &matches)?;
     organization_list::handle(&config, &matches)?;
     user_info::handle(&config, &matches)?;

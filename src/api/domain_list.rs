@@ -1,4 +1,4 @@
-//! [domains list](https://api.gandi.net/docs/domains/#get-v5-domain-domains) route binding
+//! [List domains](https://api.gandi.net/docs/domains/#get-v5-domain-domains) route binding
 use std::vec::Vec;
 
 use chrono::{DateTime, Utc};

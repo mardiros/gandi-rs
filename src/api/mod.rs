@@ -6,6 +6,9 @@ pub mod domain_check;
 /// [domains list](https://api.gandi.net/docs/domains/#get-v5-domain-domains) route binding
 pub mod domain_list;
 
+/// [domains show](https://api.gandi.net/docs/domains/#get-v5-domain-domains-domain) route binding
+pub mod domain_show;
+
 /// [user-info](https://api.gandi.net/docs/organization/#get-v5-organization-user-info) route binding
 pub mod user_info;
 
