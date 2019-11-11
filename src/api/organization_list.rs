@@ -7,16 +7,19 @@ use serde_json;
 use serde_yaml;
 use toml;
 
+use super::super::config::Configuration;
 use super::super::display::{add_subcommand_options, print_flag, print_info, Format};
 use super::super::errors::{GandiError, GandiResult};
-use super::super::filter::pagination::{add_subcommand_options as add_pagination_options, Pagination};
-use super::super::filter::sharing_id::{add_subcommand_options as add_sharing_id_options, SharingSpace};
-use super::super::user_agent::get_reqwest;
+use super::super::filter::pagination::{
+    add_subcommand_options as add_pagination_options, Pagination,
+};
+use super::super::filter::sharing_id::{
+    add_subcommand_options as add_sharing_id_options, SharingSpace,
+};
 
 pub const ROUTE: &str = "/v5/organization/organizations";
 pub const COMMAND_GROUP: &str = "list";
 pub const COMMAND: &str = "organizations";
-
 
 /// Organization Information Format, returned by the API
 #[derive(Debug, Serialize, Deserialize)]
@@ -25,9 +28,8 @@ struct Organization {
     id: String,
     /// display name
     name: String,
- 
     /// type of the organization.
-    #[serde(rename(deserialize = "type", serialize="type"))]
+    #[serde(rename(deserialize = "type", serialize = "type"))]
     type_: String, // Should not be optional
 
     /// Flag to indicate the corporate status for the organization.
@@ -36,7 +38,6 @@ struct Organization {
     /// Flag to indicate the reseller status for the organization.
     #[serde(skip_serializing_if = "Option::is_none")]
     reseller: Option<bool>,
- 
     /// Email address of the organization.
     #[serde(skip_serializing_if = "Option::is_none")]
     email: Option<String>,
@@ -58,7 +59,11 @@ struct Organization {
 }
 
 /// Display the result to stdout
-fn display_result(organizations: Vec<Organization>, total_count: &str, format: Format) -> GandiResult<()> {
+fn display_result(
+    organizations: Vec<Organization>,
+    total_count: &str,
+    format: Format,
+) -> GandiResult<()> {
     match format {
         Format::JSON => {
             let resp = serde_json::to_string(&organizations)?;
@@ -81,8 +86,9 @@ fn display_result(organizations: Vec<Organization>, total_count: &str, format: F
                 print_info("name", organization.name.as_str());
                 if let Some(orgname) = organization.orgname {
                     print_info("orgname", orgname.as_str());
-                }
-                else if let (Some(firstname), Some(lastname)) = (organization.firstname, organization.lastname) {
+                } else if let (Some(firstname), Some(lastname)) =
+                    (organization.firstname, organization.lastname)
+                {
                     print_info("orgname", format!("{} {}", firstname, lastname).as_str());
                 }
                 if let Some(email) = organization.email {
@@ -105,8 +111,8 @@ fn display_result(organizations: Vec<Organization>, total_count: &str, format: F
 }
 
 /// Process the http request and display the result.
-fn process(sharing_space: SharingSpace, pagination: Pagination, format: Format) -> GandiResult<()> {
-    let req = get_reqwest(ROUTE);
+fn process(sharing_space: SharingSpace, pagination: Pagination, config: &Configuration, format: Format) -> GandiResult<()> {
+    let req = config.build_req(ROUTE);
     let req = pagination.build_req(req);
     let req = sharing_space.build_req(req);
     let mut resp = req.send()?;
@@ -137,7 +143,7 @@ pub fn subcommand<'a, 'b>() -> App<'a, 'b> {
 }
 
 /// Process the operation in case the matches is processable.
-pub fn handle(matches: &ArgMatches) -> GandiResult<bool> {
+pub fn handle(config: &Configuration, matches: &ArgMatches) -> GandiResult<bool> {
     if matches.is_present(COMMAND_GROUP) {
         let subcommand = matches.subcommand_matches(COMMAND_GROUP).unwrap();
         if subcommand.is_present(COMMAND) {
@@ -145,7 +151,7 @@ pub fn handle(matches: &ArgMatches) -> GandiResult<bool> {
             let format = Format::from(params);
             let pagination = Pagination::from(params);
             let sharing_space = SharingSpace::from(params);
-            process(sharing_space, pagination, format)?;
+            process(sharing_space, pagination, config, format)?;
             return Ok(true);
         }
     }

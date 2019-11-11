@@ -8,13 +8,17 @@ use serde_json;
 use serde_yaml;
 use toml;
 
+use super::super::config::Configuration;
 use super::super::display::{add_subcommand_options, print_flag, print_info, Format};
 use super::super::errors::{GandiError, GandiResult};
+use super::super::filter::pagination::{
+    add_subcommand_options as add_pagination_options, Pagination,
+};
+use super::super::filter::sharing_id::{
+    add_subcommand_options as add_sharing_id_options, SharingSpace,
+};
 use super::super::formatter::date_formatter_z;
 use super::super::formatter::optional_date_formatter_z;
-use super::super::filter::pagination::{add_subcommand_options as add_pagination_options, Pagination};
-use super::super::filter::sharing_id::{add_subcommand_options as add_sharing_id_options, SharingSpace};
-use super::super::user_agent::get_reqwest;
 
 pub const ROUTE: &str = "/v5/domain/domains";
 pub const COMMAND_GROUP: &str = "list";
@@ -167,8 +171,13 @@ fn display_result(domains: Vec<Domain>, total_count: &str, format: Format) -> Ga
 }
 
 /// Process the http request and display the result.
-fn process(sharing_space: SharingSpace, pagination: Pagination, format: Format) -> GandiResult<()> {
-    let req = get_reqwest(ROUTE);
+fn process(
+    sharing_space: SharingSpace,
+    pagination: Pagination,
+    config: &Configuration,
+    format: Format,
+) -> GandiResult<()> {
+    let req = config.build_req(ROUTE);
     let req = pagination.build_req(req);
     let req = sharing_space.build_req(req);
     let mut resp = req.send()?;
@@ -199,7 +208,7 @@ pub fn subcommand<'a, 'b>() -> App<'a, 'b> {
 }
 
 /// Process the operation in case the matches is processable.
-pub fn handle(matches: &ArgMatches) -> GandiResult<bool> {
+pub fn handle(config: &Configuration, matches: &ArgMatches) -> GandiResult<bool> {
     if matches.is_present(COMMAND_GROUP) {
         let subcommand = matches.subcommand_matches(COMMAND_GROUP).unwrap();
         if subcommand.is_present(COMMAND) {
@@ -207,7 +216,7 @@ pub fn handle(matches: &ArgMatches) -> GandiResult<bool> {
             let format = Format::from(params);
             let pagination = Pagination::from(params);
             let sharing_space = SharingSpace::from(params);
-            process(sharing_space, pagination, format)?;
+            process(sharing_space, pagination, config, format)?;
             return Ok(true);
         }
     }

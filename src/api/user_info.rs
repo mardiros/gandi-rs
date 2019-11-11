@@ -6,8 +6,8 @@ use serde_json;
 use serde_yaml;
 use toml;
 
+use super::super::config::Configuration;
 use super::super::errors::GandiResult;
-use super::super::user_agent::get_reqwest;
 use super::super::display::{Format, add_subcommand_options, print_info};
 
 /// endpoint of the route.
@@ -80,8 +80,8 @@ fn display_result(user_info: UserInfo, format: Format) -> GandiResult<()> {
 }
 
 /// Process the http request and display the result.
-fn process(format: Format) -> GandiResult<()> {
-    let mut resp = get_reqwest(ROUTE).send()?;
+fn process(config: &Configuration, format: Format) -> GandiResult<()> {
+    let mut resp = config.build_req(ROUTE).send()?;
     let user_info: UserInfo = resp.json()?;
     display_result(user_info, format)?;
     Ok(())
@@ -93,13 +93,13 @@ pub fn subcommand<'a, 'b>() -> App<'a, 'b> {
 }
 
 /// Process the operation in case the matches is processable.
-pub fn handle(matches: &ArgMatches) -> GandiResult<bool> {
+pub fn handle(config: &Configuration, matches: &ArgMatches) -> GandiResult<bool> {
     if matches.is_present(COMMAND_GROUP) {
         let subcommand = matches.subcommand_matches(COMMAND_GROUP).unwrap();
         if subcommand.is_present(COMMAND) {
             let params = subcommand.subcommand_matches(COMMAND).unwrap();
             let format = Format::from(params);
-            process(format)?;
+            process(config, format)?;
             return Ok(true);
         }
     }

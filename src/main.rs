@@ -1,6 +1,6 @@
 //! # Alternative Gandi ClI in rust
 
-use clap::{App, SubCommand};
+use clap::{App, Arg, SubCommand};
 use log::debug;
 use pretty_env_logger;
 
@@ -8,6 +8,8 @@ use pretty_env_logger;
 mod api;
 /// defined constants
 mod constants;
+/// CLI configuration
+mod config;
 /// output options
 mod display;
 /// error and result wrapping
@@ -16,14 +18,14 @@ mod errors;
 mod filter;
 /// serde helpers
 mod formatter;
-/// http user agent helpers
-mod user_agent;
 
-use self::errors::GandiResult;
+use errors::GandiResult;
 use api::domain_check;
 use api::domain_list;
 use api::organization_list;
 use api::user_info;
+use config::Configuration;
+
 
 /// Parse Command line and run appropriate command.
 fn run() -> GandiResult<()> {
@@ -31,6 +33,14 @@ fn run() -> GandiResult<()> {
         .version(constants::VERSION)
         .author(env!("CARGO_PKG_AUTHORS"))
         .about(env!("CARGO_PKG_DESCRIPTION"))
+        .arg(
+            Arg::with_name("CONFIG")
+                .short("c")
+                .long("config")
+                .default_value("")
+                .takes_value(true)
+                .help("Number of element per page"),
+        )
         .subcommand(
             SubCommand::with_name("check")
                 .about("Check for domain availability")
@@ -49,10 +59,11 @@ fn run() -> GandiResult<()> {
         )
         .get_matches();
 
-    domain_check::handle(&matches)?;
-    domain_list::handle(&matches)?;
-    organization_list::handle(&matches)?;
-    user_info::handle(&matches)?;
+    let config = Configuration::from(&matches);
+    domain_check::handle(&config, &matches)?;
+    domain_list::handle(&config, &matches)?;
+    organization_list::handle(&config, &matches)?;
+    user_info::handle(&config, &matches)?;
 
     Ok(())
 }

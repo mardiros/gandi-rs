@@ -8,11 +8,13 @@ use serde_json;
 use serde_yaml;
 use toml;
 
-use super::super::formatter::date_formatter;
+use super::super::config::Configuration;
 use super::super::display::{add_subcommand_options, print_info, Format};
-use super::super::filter::sharing_id::{add_subcommand_options as add_sharing_id_options, SharingSpace};
 use super::super::errors::{GandiError, GandiResult};
-use super::super::user_agent::get_reqwest;
+use super::super::filter::sharing_id::{
+    add_subcommand_options as add_sharing_id_options, SharingSpace,
+};
+use super::super::formatter::date_formatter;
 
 pub const ROUTE: &str = "/v5/domain/check";
 pub const COMMAND_GROUP: &str = "check";
@@ -24,7 +26,7 @@ struct Tax {
     /// name of the tax
     name: String,
     /// type of the tax
-    #[serde(rename(deserialize = "type", serialize="type"))]
+    #[serde(rename(deserialize = "type", serialize = "type"))]
     type_: String,
     /// tax rate in percent
     rate: f32,
@@ -164,8 +166,13 @@ fn display_result(check: DomainCheck, format: Format) -> GandiResult<()> {
 }
 
 /// Process the http request and display the result.
-fn process(fqdn: &str, sharing_space: SharingSpace, format: Format) -> GandiResult<()> {
-    let req = get_reqwest(ROUTE).query(&[("name", fqdn)]);
+fn process(
+    fqdn: &str,
+    sharing_space: SharingSpace,
+    config: &Configuration,
+    format: Format,
+) -> GandiResult<()> {
+    let req = config.build_req(ROUTE).query(&[("name", fqdn)]);
     let req = sharing_space.build_req(req);
     let mut resp = req.send()?;
     if resp.status().is_success() {
@@ -193,7 +200,7 @@ pub fn subcommand<'a, 'b>() -> App<'a, 'b> {
 }
 
 /// Process the operation in case the matches is processable.
-pub fn handle(matches: &ArgMatches) -> GandiResult<bool> {
+pub fn handle(config: &Configuration, matches: &ArgMatches) -> GandiResult<bool> {
     if matches.is_present(COMMAND_GROUP) {
         let subcommand = matches.subcommand_matches(COMMAND_GROUP).unwrap();
         if subcommand.is_present(COMMAND) {
@@ -201,7 +208,7 @@ pub fn handle(matches: &ArgMatches) -> GandiResult<bool> {
             let format = Format::from(params);
             let fqdn = params.value_of("FQDN").unwrap().to_string();
             let sharing_space = SharingSpace::from(params);
-            process(fqdn.as_str(), sharing_space, format)?;
+            process(fqdn.as_str(), sharing_space, config, format)?;
             return Ok(true);
         }
     }
