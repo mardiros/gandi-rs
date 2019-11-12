@@ -3,13 +3,11 @@ use std::vec::Vec;
 
 use clap::{App, ArgMatches, SubCommand};
 use serde::{Deserialize, Serialize};
-use serde_json;
-use serde_yaml;
-use toml;
+use reqwest::RequestBuilder;
 
+use super::super::command_handler::GandiSubCommandHandler;
 use super::super::config::Configuration;
-use super::super::display::{add_subcommand_options, print_flag, print_info, Format};
-use super::super::errors::{GandiError, GandiResult};
+use super::super::display::{add_subcommand_options, print_flag, print_info};
 use super::super::filter::pagination::{
     add_subcommand_options as add_pagination_options, Pagination,
 };
@@ -23,7 +21,7 @@ pub const COMMAND: &str = "organizations";
 
 /// Organization Information Format, returned by the API
 #[derive(Debug, Serialize, Deserialize)]
-struct Organization {
+pub struct Organization {
     /// id of the organizaiton
     id: String,
     /// display name
@@ -58,27 +56,24 @@ struct Organization {
     vat_number: Option<String>,
 }
 
-/// Display the result to stdout
-fn display_result(
-    organizations: Vec<Organization>,
-    total_count: &str,
-    format: Format,
-) -> GandiResult<()> {
-    match format {
-        Format::JSON => {
-            let resp = serde_json::to_string(&organizations)?;
-            println!("{}", resp);
-        }
-        Format::YAML => {
-            let resp = serde_yaml::to_string(&organizations)?;
-            println!("{}", resp);
-        }
-        Format::TOML => {
-            let resp = toml::to_string(&organizations)?;
-            println!("{}", resp);
-        }
-        Format::HUMAN => {
-            println!("Total count of organizations: {}", total_count);
+/// Implement the "show domain" subcommand
+pub struct OrganizationListCommand {}
+
+
+impl GandiSubCommandHandler for OrganizationListCommand {
+    type Item = Vec<Organization>;
+
+    /// Create the route
+    fn build_req(config: &Configuration, params: &ArgMatches) -> RequestBuilder {
+        let pagination = Pagination::from(params);
+        let sharing_space = SharingSpace::from(params);
+        let req = config.build_req(ROUTE);
+        let req = pagination.build_req(req);
+        sharing_space.build_req(req)
+    }
+
+   /// Display the organizaiton main data
+    fn display_human_result(organizations: Self::Item) {
             for organization in organizations {
                 println!("");
                 print_info("id", organization.id.as_str());
@@ -106,59 +101,24 @@ fn display_result(
                 }
             }
         }
+
+    /// Create the clap subcommand with its arguments.
+    fn subcommand<'a, 'b>() -> App<'a, 'b> {
+        let subcommand = SubCommand::with_name(COMMAND);
+        let subcommand = add_pagination_options(subcommand);
+        let subcommand = add_sharing_id_options(subcommand);
+        add_subcommand_options(subcommand)
     }
-    Ok(())
-}
 
-/// Process the http request and display the result.
-fn process(
-    sharing_space: SharingSpace,
-    pagination: Pagination,
-    config: &Configuration,
-    format: Format,
-) -> GandiResult<()> {
-    let req = config.build_req(ROUTE);
-    let req = pagination.build_req(req);
-    let req = sharing_space.build_req(req);
-    let mut resp = req.send()?;
-    if resp.status().is_success() {
-        // println!("{}", resp.text().unwrap_or("".to_string()));
-        let organizations: Vec<Organization> = resp.json()?;
-        let total_count = resp
-            .headers()
-            .get("Total-Count")
-            .map(|hdr| hdr.to_str().unwrap())
-            .unwrap_or("MISSING"); // actually missing
-        display_result(organizations, total_count, format)?;
-        Ok(())
-    } else {
-        Err(GandiError::ReqwestResponseError(
-            format!("{}", resp.status()),
-            resp.text().unwrap_or("".to_string()),
-        ))
-    }
-}
-
-/// Create the clap subcommand with its arguments.
-pub fn subcommand<'a, 'b>() -> App<'a, 'b> {
-    let subcommand = SubCommand::with_name(COMMAND);
-    let subcommand = add_pagination_options(subcommand);
-    let subcommand = add_sharing_id_options(subcommand);
-    add_subcommand_options(subcommand)
-}
-
-/// Process the operation in case the matches is processable.
-pub fn handle(config: &Configuration, matches: &ArgMatches) -> GandiResult<bool> {
-    if matches.is_present(COMMAND_GROUP) {
-        let subcommand = matches.subcommand_matches(COMMAND_GROUP).unwrap();
-        if subcommand.is_present(COMMAND) {
-            let params = subcommand.subcommand_matches(COMMAND).unwrap();
-            let format = Format::from(params);
-            let pagination = Pagination::from(params);
-            let sharing_space = SharingSpace::from(params);
-            process(sharing_space, pagination, config, format)?;
-            return Ok(true);
+    /// Process the operation in case the matches is processable.
+    fn can_handle<'a>(matches: &'a ArgMatches) -> Option<&'a ArgMatches<'a>> {
+        if matches.is_present(COMMAND_GROUP) {
+            let subcommand = matches.subcommand_matches(COMMAND_GROUP).unwrap();
+            if subcommand.is_present(COMMAND) {
+                let params = subcommand.subcommand_matches(COMMAND).unwrap();
+                return Some(params);
+            }
         }
+        None
     }
-    Ok(false)
 }

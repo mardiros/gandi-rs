@@ -24,7 +24,7 @@ mod formatter;
 use api::domain_check::DomainCheckCommand;
 use api::domain_list::DomainListCommand;
 use api::domain_show::DomainShowCommand;
-use api::organization_list;
+use api::organization_list::OrganizationListCommand;
 use api::user_info::UserInfoCommand;
 use command_handler::GandiSubCommandHandler;
 use config::Configuration;
@@ -59,7 +59,7 @@ fn run() -> GandiResult<()> {
             SubCommand::with_name("list")
                 .about("Used to retrieve informations")
                 .subcommand(DomainListCommand::subcommand())
-                .subcommand(organization_list::subcommand()),
+                .subcommand(OrganizationListCommand::subcommand()),
         )
         .get_matches();
 
@@ -67,7 +67,7 @@ fn run() -> GandiResult<()> {
     DomainCheckCommand::handle(&config, &matches)?;
     DomainShowCommand::handle(&config, &matches)?;
     DomainListCommand::handle(&config, &matches)?;
-    organization_list::handle(&config, &matches)?;
+    OrganizationListCommand::handle(&config, &matches)?;
     UserInfoCommand::handle(&config, &matches)?;
 
     Ok(())
