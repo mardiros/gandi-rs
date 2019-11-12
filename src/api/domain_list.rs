@@ -4,8 +4,10 @@ use std::vec::Vec;
 use chrono::{DateTime, Utc};
 use clap::{App, ArgMatches, SubCommand};
 use reqwest::RequestBuilder;
+use reqwest::header::HeaderMap;
 use serde::{Deserialize, Serialize};
 
+use super::super::errors::GandiResult;
 use super::super::config::Configuration;
 use super::super::command_handler::GandiSubCommandHandler;
 use super::super::display::{add_subcommand_options, print_flag, print_info};
@@ -141,6 +143,18 @@ impl GandiSubCommandHandler for DomainListCommand {
         let req = config.build_req(ROUTE);
         let req = pagination.build_req(req);
         sharing_space.build_req(req)
+    }
+
+
+    /// Override it to display extra informations from the response header
+    fn display_human_headers(headers: &HeaderMap) -> GandiResult<()> { 
+            let total_count = headers
+                .get("Total-Count")
+                .map(|hdr| hdr.to_str().unwrap())
+                .unwrap_or("MISSING");
+            println!("");
+            print_info("Total Count of domains:", total_count);
+            Ok(())
     }
 
     /// Display the domain important data

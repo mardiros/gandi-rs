@@ -4,6 +4,7 @@ use colored::*;
 use std::convert::From;
 
 /// Output format
+#[derive(PartialEq)]
 pub enum Format {
     JSON,
     TOML,

@@ -4,6 +4,7 @@
 //! 
 use clap::{App, ArgMatches};
 use reqwest::RequestBuilder;
+use reqwest::header::HeaderMap;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use serde_json;
@@ -32,9 +33,11 @@ where
 
     /// Display to stdout in case there is no format defined
     fn display_human_result(item: Self::Item);
+    /// Override it to display extra informations from the response header
+    fn display_human_headers(_: &HeaderMap) -> GandiResult<()> { Ok(()) }
 
     /// Display the result for human
-    fn display_result(item: Self::Item, format: Format) -> GandiResult<()> {
+    fn display_result(item: Self::Item, format: &Format) -> GandiResult<()> {
         match format {
             Format::JSON => {
                 let resp = serde_json::to_string(&item)?;
@@ -71,15 +74,10 @@ where
         if resp.status().is_success() {
             // println!("{}", resp.text().unwrap_or("".to_string()));
             let item: Self::Item = resp.json()?;
-
-            // FIXME for lists
-            // let total_count = resp
-            //     .headers()
-            //     .get("Total-Count")
-            //     .map(|hdr| hdr.to_str().unwrap())
-            //     .unwrap_or("MISSING");
-
-            Self::display_result(item, format)?;
+            Self::display_result(item, &format)?;
+            if format == Format::HUMAN {
+                Self::display_human_headers(resp.headers())?;
+            }
             Ok(())
         } else {
             Err(GandiError::ReqwestResponseError(
