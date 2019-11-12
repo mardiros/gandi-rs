@@ -1,14 +1,11 @@
 ///! The [user-info](https://api.gandi.net/docs/organization/#get-v5-organization-user-info) route binding
-
 use clap::{App, ArgMatches, SubCommand};
 use serde::{Deserialize, Serialize};
-use serde_json;
-use serde_yaml;
-use toml;
+use reqwest::RequestBuilder;
 
+use super::super::command_handler::GandiSubCommandHandler;
 use super::super::config::Configuration;
-use super::super::errors::GandiResult;
-use super::super::display::{Format, add_subcommand_options, print_info};
+use super::super::display::{add_subcommand_options, print_info};
 
 /// endpoint of the route.
 const ROUTE: &str = "/v5/organization/user-info";
@@ -19,7 +16,7 @@ const COMMAND: &str = "user-info";
 
 /// User Information format, returned by the API
 #[derive(Debug, Serialize, Deserialize)]
-struct UserInfo {
+pub struct UserInfo {
     /// the sharing id of the user.
     id: String,
     /// the username of the user.
@@ -52,56 +49,39 @@ struct UserInfo {
     zip: Option<String>,
 }
 
+/// Implement the "show domain" subcommand
+pub struct UserInfoCommand {}
 
-/// Display the result for human
-fn display_result(user_info: UserInfo, format: Format) -> GandiResult<()> {
-    match format {
-        Format::JSON => {
-            let resp = serde_json::to_string(&user_info)?;
-            println!("{}", resp);
-        }
-        Format::YAML => {
-            let resp = serde_yaml::to_string(&user_info)?;
-            println!("{}", resp);
-        }
-        Format::TOML => {
-            let resp = toml::to_string(&user_info)?;
-            println!("{}", resp);
-        }
-        Format::HUMAN => {
-            println!("{}\n", "User Information");
-            print_info("id", user_info.id.as_str());
-            print_info("username", user_info.username.as_str());
-            print_info("email", user_info.email.as_str());
-            print_info("lang", user_info.lang.as_str());
-        }
+impl GandiSubCommandHandler for UserInfoCommand {
+    type Item = UserInfo;
+
+    /// Create the route
+    fn build_req(config: &Configuration, _: &ArgMatches) -> RequestBuilder {
+        config.build_req(ROUTE)
     }
-    Ok(())
-}
-
-/// Process the http request and display the result.
-fn process(config: &Configuration, format: Format) -> GandiResult<()> {
-    let mut resp = config.build_req(ROUTE).send()?;
-    let user_info: UserInfo = resp.json()?;
-    display_result(user_info, format)?;
-    Ok(())
-}
-
-/// Create the clap subcommand with its arguments.
-pub fn subcommand<'a, 'b>() -> App<'a, 'b> {
-    add_subcommand_options(SubCommand::with_name(COMMAND))
-}
-
-/// Process the operation in case the matches is processable.
-pub fn handle(config: &Configuration, matches: &ArgMatches) -> GandiResult<bool> {
-    if matches.is_present(COMMAND_GROUP) {
-        let subcommand = matches.subcommand_matches(COMMAND_GROUP).unwrap();
-        if subcommand.is_present(COMMAND) {
-            let params = subcommand.subcommand_matches(COMMAND).unwrap();
-            let format = Format::from(params);
-            process(config, format)?;
-            return Ok(true);
-        }
+   /// Display the user info main data
+    fn display_human_result(user_info: Self::Item) {
+        println!("{}\n", "User Information");
+        print_info("id", user_info.id.as_str());
+        print_info("username", user_info.username.as_str());
+        print_info("email", user_info.email.as_str());
+        print_info("lang", user_info.lang.as_str());
     }
-    Ok(false)
+
+    /// Create the clap subcommand with its arguments.
+    fn subcommand<'a, 'b>() -> App<'a, 'b> {
+        add_subcommand_options(SubCommand::with_name(COMMAND))
+    }
+
+    /// Process the operation in case the matches is processable.
+    fn can_handle<'a>(matches: &'a ArgMatches) -> Option<&'a ArgMatches<'a>> {
+        if matches.is_present(COMMAND_GROUP) {
+            let subcommand = matches.subcommand_matches(COMMAND_GROUP).unwrap();
+            if subcommand.is_present(COMMAND) {
+                let params = subcommand.subcommand_matches(COMMAND).unwrap();
+                return Some(params);
+            }
+        }
+        None
+    }
 }

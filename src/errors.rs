@@ -7,8 +7,8 @@ use std::io::Error as IOError;
 use reqwest::Error as ReqwestError;
 use serde_json::error::Error as SerdeJsonError;
 use serde_yaml::Error as SerdeYamlError;
-use toml::ser::Error as TomlSerError;
 use toml::de::Error as TomlDeError;
+use toml::ser::Error as TomlSerError;
 
 #[derive(Debug)]
 /// Errors in Gandi CLI

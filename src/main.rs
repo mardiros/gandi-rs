@@ -6,10 +6,12 @@ use pretty_env_logger;
 
 /// api module
 mod api;
-/// defined constants
-mod constants;
+/// CLI subcommand handler
+mod command_handler;
 /// CLI configuration
 mod config;
+/// defined constants
+mod constants;
 /// output options
 mod display;
 /// error and result wrapping
@@ -19,14 +21,14 @@ mod filter;
 /// serde helpers
 mod formatter;
 
-use errors::GandiResult;
-use api::domain_check;
-use api::domain_list;
-use api::domain_show;
+use api::domain_check::DomainCheckCommand;
+use api::domain_list::DomainListCommand;
+use api::domain_show::DomainShowCommand;
 use api::organization_list;
-use api::user_info;
+use api::user_info::UserInfoCommand;
+use command_handler::GandiSubCommandHandler;
 use config::Configuration;
-
+use errors::GandiResult;
 
 /// Parse Command line and run appropriate command.
 fn run() -> GandiResult<()> {
@@ -45,28 +47,28 @@ fn run() -> GandiResult<()> {
         .subcommand(
             SubCommand::with_name("check")
                 .about("Check for domain availability")
-                .subcommand(domain_check::subcommand()),
+                .subcommand(DomainCheckCommand::subcommand()),
         )
         .subcommand(
             SubCommand::with_name("show")
                 .about("Used to retrieve informations")
-                .subcommand(domain_show::subcommand())
-                .subcommand(user_info::subcommand()),
+                .subcommand(DomainShowCommand::subcommand())
+                .subcommand(UserInfoCommand::subcommand()),
         )
         .subcommand(
             SubCommand::with_name("list")
                 .about("Used to retrieve informations")
-                .subcommand(domain_list::subcommand())
+                .subcommand(DomainListCommand::subcommand())
                 .subcommand(organization_list::subcommand()),
         )
         .get_matches();
 
     let config = Configuration::from(&matches);
-    domain_check::handle(&config, &matches)?;
-    domain_show::handle(&config, &matches)?;
-    domain_list::handle(&config, &matches)?;
+    DomainCheckCommand::handle(&config, &matches)?;
+    DomainShowCommand::handle(&config, &matches)?;
+    DomainListCommand::handle(&config, &matches)?;
     organization_list::handle(&config, &matches)?;
-    user_info::handle(&config, &matches)?;
+    UserInfoCommand::handle(&config, &matches)?;
 
     Ok(())
 }

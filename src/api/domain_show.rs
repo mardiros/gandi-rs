@@ -4,14 +4,12 @@ use std::vec::Vec;
 
 use chrono::{DateTime, Utc};
 use clap::{App, Arg, ArgMatches, SubCommand};
+use reqwest::RequestBuilder;
 use serde::{Deserialize, Serialize};
-use serde_json;
-use serde_yaml;
-use toml;
 
+use super::super::command_handler::GandiSubCommandHandler;
 use super::super::config::Configuration;
-use super::super::display::{add_subcommand_options, print_info, Format};
-use super::super::errors::{GandiError, GandiResult};
+use super::super::display::{add_subcommand_options, print_info};
 use super::super::formatter::date_formatter_z;
 use super::super::formatter::optional_date_formatter_z;
 
@@ -194,7 +192,7 @@ pub struct Dates {
 
 /// Domain Information Format, returned by the API
 #[derive(Debug, Serialize, Deserialize)]
-struct Domain {
+pub struct Domain {
     /// the id of the domain
     // optional ?
     id: String,
@@ -227,75 +225,49 @@ struct Domain {
     contacts: Contacts,
 }
 
-/// Display the result for human
-fn display_result(domain: Domain, format: Format) -> GandiResult<()> {
-    match format {
-        Format::JSON => {
-            let resp = serde_json::to_string(&domain)?;
-            println!("{}", resp);
-        }
-        Format::YAML => {
-            let resp = serde_yaml::to_string(&domain)?;
-            println!("{}", resp);
-        }
-        Format::TOML => {
-            let resp = toml::to_string(&domain)?;
-            println!("{}", resp);
-        }
-        Format::HUMAN => {
-            print_info("fqdn", domain.fqdn_unicode.as_str());
-            print_info("id", domain.id.as_str());
-            //print_info("sharing_id", domain.sharing_id.as_str());
-            // print_info("autorenew", format!("{:?}", domain.autorenew).as_str());
-            if let Some(tags) = domain.tags {
-                if tags.len() > 0 {
-                    print_info("tags", tags.join(" ").as_str());
-                }
+/// Implement the "show domain" subcommand
+pub struct DomainShowCommand {}
+
+impl GandiSubCommandHandler for DomainShowCommand {
+    type Item = Domain;
+
+    /// Create the route
+    fn build_req(config: &Configuration, params: &ArgMatches) -> RequestBuilder {
+        let fqdn = params.value_of("FQDN").unwrap().to_string();
+        config.build_req(format!(ROUTE!(), fqdn).as_str())
+    }
+
+    /// Display the domain important data
+    fn display_human_result(item: Self::Item) {
+        print_info("fqdn", item.fqdn_unicode.as_str());
+        print_info("id", item.id.as_str());
+        if let Some(tags) = item.tags {
+            if tags.len() > 0 {
+                print_info("tags", tags.join(" ").as_str());
             }
         }
     }
-    Ok(())
-}
 
-/// Process the http request and display the result.
-fn process(fqdn: String, config: &Configuration, format: Format) -> GandiResult<()> {
-    let req = config.build_req(format!(ROUTE!(), fqdn).as_str());
-    let mut resp = req.send()?;
-    if resp.status().is_success() {
-        // println!("{}", resp.text().unwrap_or("".to_string()));
-        let domain: Domain = resp.json()?;
-        display_result(domain, format)?;
-        Ok(())
-    } else {
-        Err(GandiError::ReqwestResponseError(
-            format!("{}", resp.status()),
-            resp.text().unwrap_or("".to_string()),
-        ))
+    /// Create the clap subcommand with its arguments.
+    fn subcommand<'a, 'b>() -> App<'a, 'b> {
+        let subcommand = SubCommand::with_name(COMMAND).arg(
+            Arg::with_name("FQDN")
+                .index(1)
+                .required(true)
+                .help("domain name to query"),
+        );
+        add_subcommand_options(subcommand)
     }
-}
 
-/// Create the clap subcommand with its arguments.
-pub fn subcommand<'a, 'b>() -> App<'a, 'b> {
-    let subcommand = SubCommand::with_name(COMMAND).arg(
-        Arg::with_name("FQDN")
-            .index(1)
-            .required(true)
-            .help("domain name to query"),
-    );
-    add_subcommand_options(subcommand)
-}
-
-/// Process the operation in case the matches is processable.
-pub fn handle(config: &Configuration, matches: &ArgMatches) -> GandiResult<bool> {
-    if matches.is_present(COMMAND_GROUP) {
-        let subcommand = matches.subcommand_matches(COMMAND_GROUP).unwrap();
-        if subcommand.is_present(COMMAND) {
-            let params = subcommand.subcommand_matches(COMMAND).unwrap();
-            let fqdn = params.value_of("FQDN").unwrap().to_string();
-            let format = Format::from(params);
-            process(fqdn, config, format)?;
-            return Ok(true);
+    /// Process the operation in case the matches is processable.
+    fn can_handle<'a>(matches: &'a ArgMatches) -> Option<&'a ArgMatches<'a>> {
+        if matches.is_present(COMMAND_GROUP) {
+            let subcommand = matches.subcommand_matches(COMMAND_GROUP).unwrap();
+            if subcommand.is_present(COMMAND) {
+                let params = subcommand.subcommand_matches(COMMAND).unwrap();
+                return Some(params);
+            }
         }
+        None
     }
-    Ok(false)
 }

@@ -9,18 +9,15 @@ pub struct SharingSpace {
     pub sharing_id: String,
 }
 
-
 impl SharingSpace {
     /// Inject the parameters of the cli in the http request
     pub fn build_req(&self, req: RequestBuilder) -> RequestBuilder {
         if self.sharing_id.len() > 0 {
             req.query(&[("sharing_id", self.sharing_id.as_str())])
-        }
-        else {
+        } else {
             req
         }
     }
-    
 }
 
 /// Retrieve the format from the clap subcommand arguments

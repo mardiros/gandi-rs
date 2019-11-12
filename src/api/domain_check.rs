@@ -3,14 +3,12 @@ use std::vec::Vec;
 
 use chrono::{DateTime, Utc};
 use clap::{App, Arg, ArgMatches, SubCommand};
+use reqwest::RequestBuilder;
 use serde::{Deserialize, Serialize};
-use serde_json;
-use serde_yaml;
-use toml;
 
+use super::super::command_handler::GandiSubCommandHandler;
 use super::super::config::Configuration;
-use super::super::display::{add_subcommand_options, print_info, Format};
-use super::super::errors::{GandiError, GandiResult};
+use super::super::display::{add_subcommand_options, print_info};
 use super::super::filter::sharing_id::{
     add_subcommand_options as add_sharing_id_options, SharingSpace,
 };
@@ -95,7 +93,7 @@ struct Product {
 
 /// Domain Availability Check Format, returned by the API
 #[derive(Debug, Serialize, Deserialize)]
-struct DomainCheck {
+pub struct DomainCheck {
     /// currency prices are exposed
     currency: String,
     /// Gandi grid
@@ -105,112 +103,84 @@ struct DomainCheck {
     products: Option<Vec<Product>>,
 }
 
-/// Display the result for human
-fn display_result(check: DomainCheck, format: Format) -> GandiResult<()> {
-    match format {
-        Format::JSON => {
-            let resp = serde_json::to_string(&check)?;
-            println!("{}", resp);
-        }
-        Format::YAML => {
-            let resp = serde_yaml::to_string(&check)?;
-            println!("{}", resp);
-        }
-        Format::TOML => {
-            let resp = toml::to_string(&check)?;
-            println!("{}", resp);
-        }
-        Format::HUMAN => {
-            let golive = "golive".to_string();
-            let missing_process = "???".to_string();
-            //println!("Check: {:?}", check);
+/// implement the "check domain" subcommand
+pub struct DomainCheckCommand {}
 
-            let products = check.products.unwrap_or(vec![]);
-            for product in products {
-                if product.status != "available" {
+impl GandiSubCommandHandler for DomainCheckCommand {
+    type Item = DomainCheck;
+
+    /// Create the route
+    fn build_req(config: &Configuration, params: &ArgMatches) -> RequestBuilder {
+        let fqdn = params.value_of("FQDN").unwrap().to_string();
+        let sharing_space = SharingSpace::from(params);
+        let req = config.build_req(ROUTE).query(&[("name", fqdn)]);
+        sharing_space.build_req(req)
+    }
+
+    /// Display the domain important data
+    fn display_human_result(item: Self::Item) {
+        let golive = "golive".to_string();
+        let missing_process = "???".to_string();
+        //println!("Check: {:?}", check);
+
+        let products = item.products.unwrap_or(vec![]);
+        for product in products {
+            if product.status != "available" {
+                print_info(
+                    format!(
+                        "{} {}",
+                        product.process.as_ref().unwrap_or(&missing_process),
+                        product.name
+                    )
+                    .as_str(),
+                    product.status.as_str(),
+                )
+            } else {
+                let prices = product.prices.unwrap_or(vec![]);
+                for price in prices {
                     print_info(
                         format!(
-                            "{} {}",
+                            "{} {} {} {}",
                             product.process.as_ref().unwrap_or(&missing_process),
-                            product.name
+                            product.name,
+                            format!(
+                                "{}{}->{}{}",
+                                price.min_duration,
+                                price.duration_unit,
+                                price.max_duration,
+                                price.duration_unit
+                            ),
+                            price.options.period.as_ref().unwrap_or(&golive),
                         )
                         .as_str(),
-                        product.status.as_str(),
-                    )
-                } else {
-                    let prices = product.prices.unwrap_or(vec![]);
-                    for price in prices {
-                        print_info(
-                            format!(
-                                "{} {} {} {}",
-                                product.process.as_ref().unwrap_or(&missing_process),
-                                product.name,
-                                format!(
-                                    "{}{}->{}{}",
-                                    price.min_duration,
-                                    price.duration_unit,
-                                    price.max_duration,
-                                    price.duration_unit
-                                ),
-                                price.options.period.as_ref().unwrap_or(&golive),
-                            )
-                            .as_str(),
-                            format!("{} {}", price.price_after_taxes, check.currency).as_str(),
-                        );
-                    }
+                        format!("{} {}", price.price_after_taxes, item.currency).as_str(),
+                    );
                 }
             }
         }
     }
-    Ok(())
-}
 
-/// Process the http request and display the result.
-fn process(
-    fqdn: &str,
-    sharing_space: SharingSpace,
-    config: &Configuration,
-    format: Format,
-) -> GandiResult<()> {
-    let req = config.build_req(ROUTE).query(&[("name", fqdn)]);
-    let req = sharing_space.build_req(req);
-    let mut resp = req.send()?;
-    if resp.status().is_success() {
-        let check: DomainCheck = resp.json()?;
-        display_result(check, format)?;
-        Ok(())
-    } else {
-        Err(GandiError::ReqwestResponseError(
-            format!("{}", resp.status()),
-            resp.text().unwrap_or("".to_string()),
-        ))
+    /// Create the clap subcommand with its arguments.
+    fn subcommand<'a, 'b>() -> App<'a, 'b> {
+        let subcommand = SubCommand::with_name(COMMAND).arg(
+            Arg::with_name("FQDN")
+                .index(1)
+                .required(true)
+                .help("domain name to query"),
+        );
+        let subcommand = add_sharing_id_options(subcommand);
+        add_subcommand_options(subcommand)
     }
-}
 
-/// Create the clap subcommand with its arguments.
-pub fn subcommand<'a, 'b>() -> App<'a, 'b> {
-    let subcommand = SubCommand::with_name(COMMAND).arg(
-        Arg::with_name("FQDN")
-            .index(1)
-            .required(true)
-            .help("domain name to query"),
-    );
-    let subcommand = add_sharing_id_options(subcommand);
-    add_subcommand_options(subcommand)
-}
-
-/// Process the operation in case the matches is processable.
-pub fn handle(config: &Configuration, matches: &ArgMatches) -> GandiResult<bool> {
-    if matches.is_present(COMMAND_GROUP) {
-        let subcommand = matches.subcommand_matches(COMMAND_GROUP).unwrap();
-        if subcommand.is_present(COMMAND) {
-            let params = subcommand.subcommand_matches(COMMAND).unwrap();
-            let format = Format::from(params);
-            let fqdn = params.value_of("FQDN").unwrap().to_string();
-            let sharing_space = SharingSpace::from(params);
-            process(fqdn.as_str(), sharing_space, config, format)?;
-            return Ok(true);
+    /// Process the operation in case the matches is processable.
+    fn can_handle<'a>(matches: &'a ArgMatches) -> Option<&'a ArgMatches<'a>> {
+        if matches.is_present(COMMAND_GROUP) {
+            let subcommand = matches.subcommand_matches(COMMAND_GROUP).unwrap();
+            if subcommand.is_present(COMMAND) {
+                let params = subcommand.subcommand_matches(COMMAND).unwrap();
+                return Some(params);
+            }
         }
+        None
     }
-    Ok(false)
 }

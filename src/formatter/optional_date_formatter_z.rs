@@ -20,8 +20,7 @@ where
     if let Some(date) = date {
         let s = format!("{}", date.format(FORMAT));
         serializer.serialize_str(&s)
-    }
-    else {
+    } else {
         serializer.serialize_none()
     }
 }
@@ -39,6 +38,6 @@ where
 {
     let s = String::deserialize(deserializer)?;
     Utc.datetime_from_str(&s, FORMAT)
-        .map(|d|Some(d))
+        .map(|d| Some(d))
         .map_err(serde::de::Error::custom)
 }

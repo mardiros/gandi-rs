@@ -111,7 +111,12 @@ fn display_result(
 }
 
 /// Process the http request and display the result.
-fn process(sharing_space: SharingSpace, pagination: Pagination, config: &Configuration, format: Format) -> GandiResult<()> {
+fn process(
+    sharing_space: SharingSpace,
+    pagination: Pagination,
+    config: &Configuration,
+    format: Format,
+) -> GandiResult<()> {
     let req = config.build_req(ROUTE);
     let req = pagination.build_req(req);
     let req = sharing_space.build_req(req);
