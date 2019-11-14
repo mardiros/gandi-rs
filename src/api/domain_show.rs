@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use super::super::command_handler::GandiSubCommandHandler;
 use super::super::config::Configuration;
-use super::super::display::{add_subcommand_options, print_info};
+use super::super::display::{add_subcommand_options, print_flag, print_info, print_tags, print_list};
 use super::super::formatter::date_formatter_z;
 use super::super::formatter::optional_date_formatter_z;
 
@@ -35,7 +35,7 @@ struct Autorenew {
     // use it to disable the autorenew
     enabled: bool,
     /// sharing_id that pay the renew
-    org_id: String,
+    org_id: Option<String>,
 }
 
 /// Contact information
@@ -225,6 +225,31 @@ pub struct Domain {
     contacts: Contacts,
 }
 
+
+/// Helper to print tags in the human format
+fn print_contact(type_: &str, contact: &Contact, sharing_space: Option<&SharingSpace>) {
+    let mut contact = if contact.type_ == 0 {
+        format!(
+            r#""{} {}" <{}>"#,
+            contact.given,
+            contact.family,
+            contact.email
+        )
+    } else {
+        format!(
+            r#""{}" <{}>"#,
+            contact.orgname.as_ref().map(|orgname| orgname.as_str())
+                .unwrap_or("NO ORGNAME SET"),
+            contact.email
+        )
+    };
+    if let Some(sharing) = sharing_space {
+        contact = format!("{} ({})", contact, sharing.name);
+    }
+    print_info(type_, contact.as_str());
+}
+
+
 /// Implement the "show domain" subcommand
 pub struct DomainShowCommand {}
 
@@ -238,14 +263,23 @@ impl GandiSubCommandHandler for DomainShowCommand {
     }
 
     /// Display the domain important data
-    fn display_human_result(item: Self::Item) {
-        print_info("fqdn", item.fqdn_unicode.as_str());
-        print_info("id", item.id.as_str());
-        if let Some(tags) = item.tags {
-            if tags.len() > 0 {
-                print_info("tags", tags.join(" ").as_str());
-            }
+    fn display_human_result(domain: Self::Item) {
+        print_info("id", domain.id.as_str());
+        print_info("fqdn", domain.fqdn_unicode.as_str());
+        print_flag("autorenew", domain.autorenew.enabled);
+        print_list("nameservers", &domain.nameservers);
+        print_list("services", &domain.services);
+        print_contact("owner", &domain.contacts.owner, Some(&domain.sharing_space));
+        if !domain.contacts.admin.same_as_owner.unwrap_or(false) {
+            print_contact("admin", &domain.contacts.admin, None);
         }
+        if !domain.contacts.tech.same_as_owner.unwrap_or(false) {
+            print_contact("tech", &domain.contacts.tech, None);
+        }
+        if !domain.contacts.bill.same_as_owner.unwrap_or(false) {
+            print_contact("bill", &domain.contacts.bill, None);
+        }
+        print_tags(&domain.tags);
     }
 
     /// Create the clap subcommand with its arguments.

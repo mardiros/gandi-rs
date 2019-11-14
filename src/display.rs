@@ -62,3 +62,21 @@ pub fn print_flag(key: &str, val: bool) {
         println!("{}: {}", key.bright_blue(), "inactive".red());
     }
 }
+
+/// Helper to print lists in the human format
+pub fn print_list(name: &str, tags: &Option<Vec<String>>) {
+    tags.as_ref().map(|tags| {
+        if tags.len() > 0 {
+            print_info(name, tags.join(", ").as_str());
+        }
+    });
+}
+
+/// Helper to print tags in the human format
+pub fn print_tags(tags: &Option<Vec<String>>) {
+    tags.as_ref().map(|tags| {
+        if tags.len() > 0 {
+            print_info("tags", format!("#{}", tags.join(" #")).as_str());
+        }
+    });
+}

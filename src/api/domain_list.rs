@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use super::super::errors::GandiResult;
 use super::super::config::Configuration;
 use super::super::command_handler::GandiSubCommandHandler;
-use super::super::display::{add_subcommand_options, print_flag, print_info};
+use super::super::display::{add_subcommand_options, print_flag, print_info, print_tags};
 use super::super::filter::pagination::{
     add_subcommand_options as add_pagination_options, Pagination,
 };
@@ -173,11 +173,7 @@ impl GandiSubCommandHandler for DomainListCommand {
             // print_info("tld", domain.tld.as_str());
             // print_info("nameserver", domain.nameserver.current.as_str());
             print_flag("autorenew", domain.autorenew);
-            if let Some(tags) = domain.tags {
-                if tags.len() > 0 {
-                    print_info("tags", tags.join(" ").as_str());
-                }
-            }
+            print_tags(&domain.tags);
         }
     }
 
