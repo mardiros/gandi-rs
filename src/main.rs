@@ -25,6 +25,7 @@ use api::domain_check::DomainCheckCommand;
 use api::domain_list::DomainListCommand;
 use api::domain_show::DomainShowCommand;
 use api::domain_contact_show::DomainContactsShowCommand;
+use api::domain_gluerecords_show::DomainGlueRecordsShowCommand;
 use api::organization_list::OrganizationListCommand;
 use api::user_info::UserInfoCommand;
 use command_handler::GandiSubCommandHandler;
@@ -55,6 +56,7 @@ fn run() -> GandiResult<()> {
                 .about("Used to retrieve informations")
                 .subcommand(DomainShowCommand::subcommand())
                 .subcommand(DomainContactsShowCommand::subcommand())
+                .subcommand(DomainGlueRecordsShowCommand::subcommand())
                 .subcommand(UserInfoCommand::subcommand()),
         )
         .subcommand(
@@ -69,6 +71,7 @@ fn run() -> GandiResult<()> {
     DomainCheckCommand::handle(&config, &matches)?;
     DomainShowCommand::handle(&config, &matches)?;
     DomainContactsShowCommand::handle(&config, &matches)?;
+    DomainGlueRecordsShowCommand::handle(&config, &matches)?;
     DomainListCommand::handle(&config, &matches)?;
     OrganizationListCommand::handle(&config, &matches)?;
     UserInfoCommand::handle(&config, &matches)?;
