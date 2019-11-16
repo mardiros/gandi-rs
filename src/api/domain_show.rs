@@ -1,5 +1,4 @@
 //! [Show domain information](https://api.gandi.net/docs/domains/#v5-domain-domains-domain) route binding
-use std::collections::HashMap;
 use std::vec::Vec;
 
 use chrono::{DateTime, Utc};
@@ -9,9 +8,12 @@ use serde::{Deserialize, Serialize};
 
 use super::super::command_handler::GandiSubCommandHandler;
 use super::super::config::Configuration;
-use super::super::display::{add_subcommand_options, print_flag, print_info, print_tags, print_list};
+use super::super::display::{
+    add_subcommand_options, print_flag, print_info, print_list, print_tags,
+};
 use super::super::formatter::date_formatter_z;
 use super::super::formatter::optional_date_formatter_z;
+use super::domain_contact_show::{print_contacts, Contacts, SharingSpace};
 
 pub const COMMAND_GROUP: &str = "show";
 pub const COMMAND: &str = "domain";
@@ -36,95 +38,6 @@ struct Autorenew {
     enabled: bool,
     /// sharing_id that pay the renew
     org_id: Option<String>,
-}
-
-/// Contact information
-#[derive(Debug, Serialize, Deserialize)]
-struct Contact {
-    /// Will be true when the contact used is the same as the owner.
-    /// always none for the owner contact, because it does not make sense.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    same_as_owner: Option<bool>,
-
-    /// 0: person, 1: company, 2: association, 3: public body
-    // 4: reseller is bad
-    #[serde(rename(deserialize = "type", serialize = "type"))]
-    type_: usize,
-
-    /// legal name of the company, association, or public body if the contact type is not 0.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    orgname: Option<String>,
-    given: String,
-    family: String,
-    streetaddr: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    zip: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    city: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    state: Option<String>,
-    country: String,
-
-    email: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    mail_obfuscated: Option<bool>,
-    // why both ?
-    /// One of "pending", "done", "failed", "deleted", "none"
-    #[serde(skip_serializing_if = "Option::is_none")]
-    reachability: Option<String>,
-    /// One of "pending", "done", "failed", "deleted", "none"
-    #[serde(skip_serializing_if = "Option::is_none")]
-    validation: Option<String>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    phone: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    fax: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    mobile: Option<String>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    data_obfuscated: Option<bool>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    extra_parameters: Option<HashMap<String, String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    siren: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    brand_number: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    jo_announce_number: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    jo_announce_page: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    jo_declaration_date: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    jo_publication_date: Option<String>,
-    // One: of: "pending", "done", "failed", "deleted", "none"
-
-    // why is there a sharing_id here ?
-    #[serde(skip_serializing_if = "Option::is_none")]
-    sharing_id: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Contacts {
-    owner: Contact,
-    admin: Contact,
-    tech: Contact,
-    bill: Contact,
-}
-
-/// Organization information
-#[derive(Debug, Serialize, Deserialize)]
-struct SharingSpace {
-    /// id that pay the renew
-    id: String,
-    /// sharing_id that pay the renew
-    name: String,
-    /// reseller flag organization
-    #[serde(skip_serializing_if = "Option::is_none")]
-    reseller: Option<bool>,
 }
 
 /// Domain's life cycle dates.
@@ -225,31 +138,6 @@ pub struct Domain {
     contacts: Contacts,
 }
 
-
-/// Helper to print tags in the human format
-fn print_contact(type_: &str, contact: &Contact, sharing_space: Option<&SharingSpace>) {
-    let mut contact = if contact.type_ == 0 {
-        format!(
-            r#""{} {}" <{}>"#,
-            contact.given,
-            contact.family,
-            contact.email
-        )
-    } else {
-        format!(
-            r#""{}" <{}>"#,
-            contact.orgname.as_ref().map(|orgname| orgname.as_str())
-                .unwrap_or("NO ORGNAME SET"),
-            contact.email
-        )
-    };
-    if let Some(sharing) = sharing_space {
-        contact = format!("{} ({})", contact, sharing.name);
-    }
-    print_info(type_, contact.as_str());
-}
-
-
 /// Implement the "show domain" subcommand
 pub struct DomainShowCommand {}
 
@@ -269,16 +157,7 @@ impl GandiSubCommandHandler for DomainShowCommand {
         print_flag("autorenew", domain.autorenew.enabled);
         print_list("nameservers", &domain.nameservers);
         print_list("services", &domain.services);
-        print_contact("owner", &domain.contacts.owner, Some(&domain.sharing_space));
-        if !domain.contacts.admin.same_as_owner.unwrap_or(false) {
-            print_contact("admin", &domain.contacts.admin, None);
-        }
-        if !domain.contacts.tech.same_as_owner.unwrap_or(false) {
-            print_contact("tech", &domain.contacts.tech, None);
-        }
-        if !domain.contacts.bill.same_as_owner.unwrap_or(false) {
-            print_contact("bill", &domain.contacts.bill, None);
-        }
+        print_contacts(&domain.contacts, Some(&domain.sharing_space));
         print_tags(&domain.tags);
     }
 
