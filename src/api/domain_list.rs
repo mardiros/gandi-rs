@@ -21,8 +21,6 @@ use super::super::formatter::date_formatter_z;
 use super::super::formatter::optional_date_formatter_z;
 
 pub const ROUTE: &str = "/v5/domain/domains";
-pub const COMMAND_GROUP: &str = "list";
-pub const COMMAND: &str = "domains";
 
 /// Name Server Information
 #[derive(Debug, Serialize, Deserialize)]
@@ -134,6 +132,8 @@ pub struct DomainListCommand {}
 
 impl GandiSubCommandHandler for DomainListCommand {
 
+    const COMMAND_GROUP: &'static str = "list";
+    const COMMAND: &'static str = "domains";
     type Item = Vec<Domain>;
 
     /// Create the route
@@ -179,22 +179,9 @@ impl GandiSubCommandHandler for DomainListCommand {
 
     /// Create the clap subcommand with its arguments.
     fn subcommand<'a, 'b>() -> App<'a, 'b> {
-        let subcommand = SubCommand::with_name(COMMAND);
+        let subcommand = SubCommand::with_name(Self::COMMAND);
         let subcommand = add_pagination_options(subcommand);
         let subcommand = add_sharing_id_options(subcommand);
         add_subcommand_options(subcommand)
     }
-
-    /// Process the operation in case the matches is processable.
-    fn can_handle<'a>(matches: &'a ArgMatches) -> Option<&'a ArgMatches<'a>> {
-        if matches.is_present(COMMAND_GROUP) {
-            let subcommand = matches.subcommand_matches(COMMAND_GROUP).unwrap();
-            if subcommand.is_present(COMMAND) {
-                let params = subcommand.subcommand_matches(COMMAND).unwrap();
-                return Some(params);
-            }
-        }
-        None
-    }
-
 }

@@ -1,10 +1,10 @@
 //! Command Handler Trait.
 //! Commands are generic to behave the mode possible identically for user.
 //! For instance --json, --yaml and --toml can be used on every commands
-//! 
+//!
 use clap::{App, ArgMatches};
-use reqwest::RequestBuilder;
 use reqwest::header::HeaderMap;
+use reqwest::RequestBuilder;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use serde_json;
@@ -20,13 +20,15 @@ pub trait GandiSubCommandHandler
 where
     Self::Item: Serialize + DeserializeOwned,
 {
+    const COMMAND_GROUP: &'static str;
+    const COMMAND: &'static str;
     type Item;
 
     /// Create the clap subcommand with its arguments.
     fn subcommand<'a, 'b>() -> App<'a, 'b>;
 
     /// Take the parameters and extract the subcommand parameters to properly handle the request
-    fn can_handle<'a>(matches: &'a ArgMatches) -> Option<&'a ArgMatches<'a>>;
+    /// fn can_handle<'a>(matches: &'a ArgMatches) -> Option<&'a ArgMatches<'a>>;
 
     /// Build the http request that will be executed
     fn build_req(config: &Configuration, matches: &ArgMatches) -> RequestBuilder;
@@ -34,7 +36,9 @@ where
     /// Display to stdout in case there is no format defined
     fn display_human_result(item: Self::Item);
     /// Override it to display extra informations from the response header
-    fn display_human_headers(_: &HeaderMap) -> GandiResult<()> { Ok(()) }
+    fn display_human_headers(_: &HeaderMap) -> GandiResult<()> {
+        Ok(())
+    }
 
     /// Display the result for human
     fn display_result(item: Self::Item, format: &Format) -> GandiResult<()> {
@@ -86,4 +90,17 @@ where
             ))
         }
     }
+
+    /// Check if the operation in case the matches is processable.
+    fn can_handle<'a>(matches: &'a ArgMatches) -> Option<&'a ArgMatches<'a>> {
+        if matches.is_present(Self::COMMAND_GROUP) {
+            let subcommand = matches.subcommand_matches(Self::COMMAND_GROUP).unwrap();
+            if subcommand.is_present(Self::COMMAND) {
+                let params = subcommand.subcommand_matches(Self::COMMAND).unwrap();
+                return Some(params);
+            }
+        }
+        None
+    }
+
 }

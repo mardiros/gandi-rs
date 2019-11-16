@@ -9,8 +9,6 @@ use super::super::command_handler::GandiSubCommandHandler;
 use super::super::config::Configuration;
 use super::super::display::{add_subcommand_options, print_info};
 
-pub const COMMAND_GROUP: &str = "show";
-pub const COMMAND: &str = "contacts";
 
 macro_rules! ROUTE {
     () => {
@@ -150,6 +148,8 @@ pub fn print_contacts(contacts: &Contacts, sharing_space: Option<&SharingSpace>)
 pub struct DomainContactsShowCommand {}
 
 impl GandiSubCommandHandler for DomainContactsShowCommand {
+    const COMMAND_GROUP: &'static str = "show";
+    const COMMAND: &'static str = "contacts";
     type Item = Contacts;
 
     /// Create the route
@@ -165,24 +165,12 @@ impl GandiSubCommandHandler for DomainContactsShowCommand {
 
     /// Create the clap subcommand with its arguments.
     fn subcommand<'a, 'b>() -> App<'a, 'b> {
-        let subcommand = SubCommand::with_name(COMMAND).arg(
+        let subcommand = SubCommand::with_name(Self::COMMAND).arg(
             Arg::with_name("FQDN")
                 .index(1)
                 .required(true)
                 .help("domain name to query"),
         );
         add_subcommand_options(subcommand)
-    }
-
-    /// Process the operation in case the matches is processable.
-    fn can_handle<'a>(matches: &'a ArgMatches) -> Option<&'a ArgMatches<'a>> {
-        if matches.is_present(COMMAND_GROUP) {
-            let subcommand = matches.subcommand_matches(COMMAND_GROUP).unwrap();
-            if subcommand.is_present(COMMAND) {
-                let params = subcommand.subcommand_matches(COMMAND).unwrap();
-                return Some(params);
-            }
-        }
-        None
     }
 }

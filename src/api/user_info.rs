@@ -9,10 +9,6 @@ use super::super::display::{add_subcommand_options, print_info};
 
 /// endpoint of the route.
 const ROUTE: &str = "/v5/organization/user-info";
-/// CLAP first sub command name.
-const COMMAND_GROUP: &str = "show";
-/// CLAP second sub command name.
-const COMMAND: &str = "user-info";
 
 /// User Information format, returned by the API
 #[derive(Debug, Serialize, Deserialize)]
@@ -54,6 +50,10 @@ pub struct UserInfoCommand {}
 
 impl GandiSubCommandHandler for UserInfoCommand {
     type Item = UserInfo;
+    /// CLAP first sub command name.
+    const COMMAND_GROUP: &'static str = "show";
+    /// CLAP second sub command name.
+    const COMMAND: &'static str = "user-info";
 
     /// Create the route
     fn build_req(config: &Configuration, _: &ArgMatches) -> RequestBuilder {
@@ -70,18 +70,7 @@ impl GandiSubCommandHandler for UserInfoCommand {
 
     /// Create the clap subcommand with its arguments.
     fn subcommand<'a, 'b>() -> App<'a, 'b> {
-        add_subcommand_options(SubCommand::with_name(COMMAND))
+        add_subcommand_options(SubCommand::with_name(Self::COMMAND))
     }
 
-    /// Process the operation in case the matches is processable.
-    fn can_handle<'a>(matches: &'a ArgMatches) -> Option<&'a ArgMatches<'a>> {
-        if matches.is_present(COMMAND_GROUP) {
-            let subcommand = matches.subcommand_matches(COMMAND_GROUP).unwrap();
-            if subcommand.is_present(COMMAND) {
-                let params = subcommand.subcommand_matches(COMMAND).unwrap();
-                return Some(params);
-            }
-        }
-        None
-    }
 }

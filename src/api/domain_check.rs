@@ -15,8 +15,6 @@ use super::super::filter::sharing_id::{
 use super::super::formatter::date_formatter;
 
 pub const ROUTE: &str = "/v5/domain/check";
-pub const COMMAND_GROUP: &str = "check";
-pub const COMMAND: &str = "domain";
 
 /// Price tax
 #[derive(Debug, Serialize, Deserialize)]
@@ -107,6 +105,8 @@ pub struct DomainCheck {
 pub struct DomainCheckCommand {}
 
 impl GandiSubCommandHandler for DomainCheckCommand {
+    const COMMAND_GROUP: &'static str = "check";
+    const COMMAND: &'static str = "domain";
     type Item = DomainCheck;
 
     /// Create the route
@@ -162,7 +162,7 @@ impl GandiSubCommandHandler for DomainCheckCommand {
 
     /// Create the clap subcommand with its arguments.
     fn subcommand<'a, 'b>() -> App<'a, 'b> {
-        let subcommand = SubCommand::with_name(COMMAND).arg(
+        let subcommand = SubCommand::with_name(Self::COMMAND).arg(
             Arg::with_name("FQDN")
                 .index(1)
                 .required(true)
@@ -170,17 +170,5 @@ impl GandiSubCommandHandler for DomainCheckCommand {
         );
         let subcommand = add_sharing_id_options(subcommand);
         add_subcommand_options(subcommand)
-    }
-
-    /// Process the operation in case the matches is processable.
-    fn can_handle<'a>(matches: &'a ArgMatches) -> Option<&'a ArgMatches<'a>> {
-        if matches.is_present(COMMAND_GROUP) {
-            let subcommand = matches.subcommand_matches(COMMAND_GROUP).unwrap();
-            if subcommand.is_present(COMMAND) {
-                let params = subcommand.subcommand_matches(COMMAND).unwrap();
-                return Some(params);
-            }
-        }
-        None
     }
 }

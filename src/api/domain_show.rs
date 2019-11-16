@@ -15,9 +15,6 @@ use super::super::formatter::date_formatter_z;
 use super::super::formatter::optional_date_formatter_z;
 use super::domain_contact_show::{print_contacts, Contacts, SharingSpace};
 
-pub const COMMAND_GROUP: &str = "show";
-pub const COMMAND: &str = "domain";
-
 macro_rules! ROUTE {
     () => {
         "/v5/domain/domains/{}"
@@ -142,6 +139,9 @@ pub struct Domain {
 pub struct DomainShowCommand {}
 
 impl GandiSubCommandHandler for DomainShowCommand {
+    const COMMAND_GROUP: &'static str = "show";
+    const COMMAND: &'static str = "domain";
+
     type Item = Domain;
 
     /// Create the route
@@ -163,24 +163,12 @@ impl GandiSubCommandHandler for DomainShowCommand {
 
     /// Create the clap subcommand with its arguments.
     fn subcommand<'a, 'b>() -> App<'a, 'b> {
-        let subcommand = SubCommand::with_name(COMMAND).arg(
+        let subcommand = SubCommand::with_name(Self::COMMAND).arg(
             Arg::with_name("FQDN")
                 .index(1)
                 .required(true)
                 .help("domain name to query"),
         );
         add_subcommand_options(subcommand)
-    }
-
-    /// Process the operation in case the matches is processable.
-    fn can_handle<'a>(matches: &'a ArgMatches) -> Option<&'a ArgMatches<'a>> {
-        if matches.is_present(COMMAND_GROUP) {
-            let subcommand = matches.subcommand_matches(COMMAND_GROUP).unwrap();
-            if subcommand.is_present(COMMAND) {
-                let params = subcommand.subcommand_matches(COMMAND).unwrap();
-                return Some(params);
-            }
-        }
-        None
     }
 }

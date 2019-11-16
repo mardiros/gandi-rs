@@ -16,8 +16,6 @@ use super::super::filter::sharing_id::{
 };
 
 pub const ROUTE: &str = "/v5/organization/organizations";
-pub const COMMAND_GROUP: &str = "list";
-pub const COMMAND: &str = "organizations";
 
 /// Organization Information Format, returned by the API
 #[derive(Debug, Serialize, Deserialize)]
@@ -61,6 +59,8 @@ pub struct OrganizationListCommand {}
 
 
 impl GandiSubCommandHandler for OrganizationListCommand {
+    const COMMAND_GROUP: &'static str = "list";
+    const COMMAND: &'static str = "organizations";
     type Item = Vec<Organization>;
 
     /// Create the route
@@ -104,21 +104,10 @@ impl GandiSubCommandHandler for OrganizationListCommand {
 
     /// Create the clap subcommand with its arguments.
     fn subcommand<'a, 'b>() -> App<'a, 'b> {
-        let subcommand = SubCommand::with_name(COMMAND);
+        let subcommand = SubCommand::with_name(Self::COMMAND);
         let subcommand = add_pagination_options(subcommand);
         let subcommand = add_sharing_id_options(subcommand);
         add_subcommand_options(subcommand)
     }
 
-    /// Process the operation in case the matches is processable.
-    fn can_handle<'a>(matches: &'a ArgMatches) -> Option<&'a ArgMatches<'a>> {
-        if matches.is_present(COMMAND_GROUP) {
-            let subcommand = matches.subcommand_matches(COMMAND_GROUP).unwrap();
-            if subcommand.is_present(COMMAND) {
-                let params = subcommand.subcommand_matches(COMMAND).unwrap();
-                return Some(params);
-            }
-        }
-        None
-    }
 }
