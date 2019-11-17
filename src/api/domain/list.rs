@@ -7,18 +7,18 @@ use reqwest::RequestBuilder;
 use reqwest::header::HeaderMap;
 use serde::{Deserialize, Serialize};
 
-use super::super::errors::GandiResult;
-use super::super::config::Configuration;
-use super::super::command_handler::GandiSubCommandHandler;
-use super::super::display::{add_subcommand_options, print_flag, print_info, print_tags};
-use super::super::filter::pagination::{
+use super::super::super::errors::GandiResult;
+use super::super::super::config::Configuration;
+use super::super::super::command_handler::GandiSubCommandHandler;
+use super::super::super::display::{add_subcommand_options, print_flag, print_info, print_tags};
+use super::super::super::filter::pagination::{
     add_subcommand_options as add_pagination_options, Pagination,
 };
-use super::super::filter::sharing_id::{
+use super::super::super::filter::sharing_id::{
     add_subcommand_options as add_sharing_id_options, SharingSpace,
 };
-use super::super::formatter::date_formatter_z;
-use super::super::formatter::optional_date_formatter_z;
+use super::super::super::formatter::date_formatter_z;
+use super::super::super::formatter::optional_date_formatter_z;
 
 pub const ROUTE: &str = "/v5/domain/domains";
 

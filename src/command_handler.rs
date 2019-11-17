@@ -102,5 +102,92 @@ where
         }
         None
     }
-
 }
+
+// pub struct GandiCommandHandler<I, F> where
+//     I: Serialize + DeserializeOwned,
+//     F: FnOnce(I) {
+//     command_group: String,
+//     command: String,
+//     item: I,
+//     human_display: F,
+// }
+
+// impl<I, F> GandiCommandHandler<I, F>
+// where
+//     I: Serialize + DeserializeOwned,
+//     F: Fn(I),
+// {
+//     pub fn new(command_group: &str, command: &str, item: I, func: F) -> Self {
+//         GandiCommandHandler {
+//             command_group: command_group.to_owned(),
+//             command: command.to_owned(),
+//             item: item,
+//             human_display: func,
+//         }
+//     }
+
+//     /// Check if the operation in case the matches is processable.
+//     fn can_handle<'a>(&self, matches: &'a ArgMatches) -> Option<&'a ArgMatches<'a>> {
+//         if matches.is_present(self.command_group.as_str()) {
+//             let subcommand = matches.subcommand_matches(self.command_group.as_str()).unwrap();
+//             if subcommand.is_present(self.command.as_str()) {
+//                 let params = subcommand.subcommand_matches(self.command.as_str()).unwrap();
+//                 return Some(params);
+//             }
+//         }
+//         None
+//     }
+
+//     /// Process the operation in case the matches is processable.
+//     fn handle(&self, config: &Configuration, params: &ArgMatches) -> GandiResult<()> {
+//         if let Some(params) = self.can_handle(params) {
+//             self.process(config, params)?;
+//         }
+//         Ok(())
+//     }
+
+//    /// Process the http request and display the result.
+//     fn process(&self, config: &Configuration, params: &ArgMatches) -> GandiResult<()> {
+//         let format = Format::from(params);
+//         Ok(())
+
+//         // let req = self.build_req(config, &params);
+//         // let mut resp = req.send()?;
+//         // if resp.status().is_success() {
+//         //     // println!("{}", resp.text().unwrap_or("".to_string()));
+//         //     let item: I = resp.json()?;
+//         //     self.display_result(item, &format)?;
+//         //     if format == Format::HUMAN {
+//         //         self.display_human_headers(resp.headers())?;
+//         //     }
+//         //     Ok(())
+//         // } else {
+//         //     Err(GandiError::ReqwestResponseError(
+//         //         format!("{}", resp.status()),
+//         //         resp.text().unwrap_or("".to_string()),
+//         //     ))
+//         // }
+//     }
+//     /// Display the result for human
+//     fn display_result(&self, item: I, format: &Format) -> GandiResult<()> {
+//         match format {
+//             Format::JSON => {
+//                 let resp = serde_json::to_string(&item)?;
+//                 println!("{}", resp);
+//             }
+//             Format::YAML => {
+//                 let resp = serde_yaml::to_string(&item)?;
+//                 println!("{}", resp);
+//             }
+//             Format::TOML => {
+//                 let resp = toml::to_string(&item)?;
+//                 println!("{}", resp);
+//             }
+//             Format::HUMAN => {
+//                 self.human_display(item);
+//             }
+//         }
+//         Ok(())
+//     }
+// }

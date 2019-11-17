@@ -6,14 +6,14 @@ use clap::{App, Arg, ArgMatches, SubCommand};
 use reqwest::RequestBuilder;
 use serde::{Deserialize, Serialize};
 
-use super::super::command_handler::GandiSubCommandHandler;
-use super::super::config::Configuration;
-use super::super::display::{
+use super::super::super::command_handler::GandiSubCommandHandler;
+use super::super::super::config::Configuration;
+use super::super::super::display::{
     add_subcommand_options, print_flag, print_info, print_list, print_tags,
 };
-use super::super::formatter::date_formatter_z;
-use super::super::formatter::optional_date_formatter_z;
-use super::domain_contact_show::{print_contacts, Contacts, SharingSpace};
+use super::super::super::formatter::date_formatter_z;
+use super::super::super::formatter::optional_date_formatter_z;
+use super::show_contact::{print_contacts, Contacts, SharingSpace};
 
 macro_rules! ROUTE {
     () => {

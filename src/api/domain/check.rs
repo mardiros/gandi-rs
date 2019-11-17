@@ -6,13 +6,13 @@ use clap::{App, Arg, ArgMatches, SubCommand};
 use reqwest::RequestBuilder;
 use serde::{Deserialize, Serialize};
 
-use super::super::command_handler::GandiSubCommandHandler;
-use super::super::config::Configuration;
-use super::super::display::{add_subcommand_options, print_info};
-use super::super::filter::sharing_id::{
+use super::super::super::command_handler::GandiSubCommandHandler;
+use super::super::super::config::Configuration;
+use super::super::super::display::{add_subcommand_options, print_info};
+use super::super::super::filter::sharing_id::{
     add_subcommand_options as add_sharing_id_options, SharingSpace,
 };
-use super::super::formatter::date_formatter;
+use super::super::super::formatter::date_formatter;
 
 pub const ROUTE: &str = "/v5/domain/check";
 
