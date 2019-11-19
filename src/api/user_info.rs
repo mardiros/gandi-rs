@@ -1,7 +1,7 @@
 ///! The [user-info](https://api.gandi.net/docs/organization/#get-v5-organization-user-info) route binding
 use clap::{App, ArgMatches, SubCommand};
-use serde::{Deserialize, Serialize};
 use reqwest::RequestBuilder;
+use serde::{Deserialize, Serialize};
 
 use super::super::command_handler::GandiSubCommandHandler;
 use super::super::config::Configuration;
@@ -59,7 +59,7 @@ impl GandiSubCommandHandler for UserInfoCommand {
     fn build_req(config: &Configuration, _: &ArgMatches) -> RequestBuilder {
         config.build_req(ROUTE)
     }
-   /// Display the user info main data
+    /// Display the user info main data
     fn display_human_result(user_info: Self::Item) {
         println!("{}\n", "User Information");
         print_info("id", user_info.id.as_str());
@@ -72,5 +72,4 @@ impl GandiSubCommandHandler for UserInfoCommand {
     fn subcommand<'a, 'b>() -> App<'a, 'b> {
         add_subcommand_options(SubCommand::with_name(Self::COMMAND))
     }
-
 }

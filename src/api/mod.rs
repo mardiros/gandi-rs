@@ -1,6 +1,5 @@
 ///! API Bindings
 
-
 /// [dns related](https://api.gandi.net/docs/livedns/) api
 pub mod dns;
 

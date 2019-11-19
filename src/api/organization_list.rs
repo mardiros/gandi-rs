@@ -2,18 +2,18 @@
 use std::vec::Vec;
 
 use clap::{App, ArgMatches, SubCommand};
-use serde::{Deserialize, Serialize};
 use reqwest::RequestBuilder;
+use serde::{Deserialize, Serialize};
 
-use super::super::command_handler::GandiSubCommandHandler;
-use super::super::config::Configuration;
-use super::super::display::{add_subcommand_options, print_flag, print_info};
 use super::super::args::pagination::{
     add_subcommand_options as add_pagination_options, Pagination,
 };
 use super::super::args::sharing_id::{
     add_subcommand_options as add_sharing_id_options, SharingSpace,
 };
+use super::super::command_handler::GandiSubCommandHandler;
+use super::super::config::Configuration;
+use super::super::display::{add_subcommand_options, print_flag, print_info};
 
 pub const ROUTE: &str = "/v5/organization/organizations";
 
@@ -57,7 +57,6 @@ pub struct Organization {
 /// Implement the "show domain" subcommand
 pub struct OrganizationListCommand {}
 
-
 impl GandiSubCommandHandler for OrganizationListCommand {
     const COMMAND_GROUP: &'static str = "list";
     const COMMAND: &'static str = "organizations";
@@ -72,35 +71,35 @@ impl GandiSubCommandHandler for OrganizationListCommand {
         sharing_space.build_req(req)
     }
 
-   /// Display the organizaiton main data
+    /// Display the organizaiton main data
     fn display_human_result(organizations: Self::Item) {
-            for organization in organizations {
-                println!("");
-                print_info("id", organization.id.as_str());
-                print_info("type", organization.type_.as_str());
-                print_info("name", organization.name.as_str());
-                if let Some(orgname) = organization.orgname {
-                    print_info("orgname", orgname.as_str());
-                } else if let (Some(firstname), Some(lastname)) =
-                    (organization.firstname, organization.lastname)
-                {
-                    print_info("orgname", format!("{} {}", firstname, lastname).as_str());
+        for organization in organizations {
+            println!("");
+            print_info("id", organization.id.as_str());
+            print_info("type", organization.type_.as_str());
+            print_info("name", organization.name.as_str());
+            if let Some(orgname) = organization.orgname {
+                print_info("orgname", orgname.as_str());
+            } else if let (Some(firstname), Some(lastname)) =
+                (organization.firstname, organization.lastname)
+            {
+                print_info("orgname", format!("{} {}", firstname, lastname).as_str());
+            }
+            if let Some(email) = organization.email {
+                print_info("email", email.as_str());
+            }
+            if let Some(reseller) = organization.reseller {
+                if reseller {
+                    print_flag("reseller", true);
                 }
-                if let Some(email) = organization.email {
-                    print_info("email", email.as_str());
-                }
-                if let Some(reseller) = organization.reseller {
-                    if reseller {
-                        print_flag("reseller", true);
-                    }
-                }
-                if let Some(corporate) = organization.corporate {
-                    if corporate {
-                        print_flag("corporate", true);
-                    }
+            }
+            if let Some(corporate) = organization.corporate {
+                if corporate {
+                    print_flag("corporate", true);
                 }
             }
         }
+    }
 
     /// Create the clap subcommand with its arguments.
     fn subcommand<'a, 'b>() -> App<'a, 'b> {
@@ -109,5 +108,4 @@ impl GandiSubCommandHandler for OrganizationListCommand {
         let subcommand = add_sharing_id_options(subcommand);
         add_subcommand_options(subcommand)
     }
-
 }

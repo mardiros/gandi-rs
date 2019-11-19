@@ -1,14 +1,14 @@
 //! [Show domain information](https://api.gandi.net/docs/domains/#v5-domain-domains-domain) route binding
 use std::collections::HashMap;
 
-use clap::{App, Arg, ArgMatches, SubCommand};
+use clap::{App, ArgMatches, SubCommand};
 use reqwest::RequestBuilder;
 use serde::{Deserialize, Serialize};
 
+use super::super::super::args::fqdn::add_fqdn_options;
 use super::super::super::command_handler::GandiSubCommandHandler;
 use super::super::super::config::Configuration;
 use super::super::super::display::{add_subcommand_options, print_info};
-
 
 macro_rules! ROUTE {
     () => {
@@ -141,7 +141,6 @@ pub fn print_contacts(contacts: &Contacts, sharing_space: Option<&SharingSpace>)
     if !contacts.bill.same_as_owner.unwrap_or(false) {
         print_contact("bill", &contacts.bill, None);
     }
-
 }
 
 /// Implement the "show domain" subcommand
@@ -165,12 +164,8 @@ impl GandiSubCommandHandler for DomainContactsShowCommand {
 
     /// Create the clap subcommand with its arguments.
     fn subcommand<'a, 'b>() -> App<'a, 'b> {
-        let subcommand = SubCommand::with_name(Self::COMMAND).arg(
-            Arg::with_name("FQDN")
-                .index(1)
-                .required(true)
-                .help("domain name to query"),
-        );
+        let subcommand = SubCommand::with_name(Self::COMMAND);
+        let subcommand = add_fqdn_options(subcommand);
         add_subcommand_options(subcommand)
     }
 }

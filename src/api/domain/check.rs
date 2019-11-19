@@ -2,16 +2,17 @@
 use std::vec::Vec;
 
 use chrono::{DateTime, Utc};
-use clap::{App, Arg, ArgMatches, SubCommand};
+use clap::{App, ArgMatches, SubCommand};
 use reqwest::RequestBuilder;
 use serde::{Deserialize, Serialize};
 
-use super::super::super::command_handler::GandiSubCommandHandler;
-use super::super::super::config::Configuration;
-use super::super::super::display::{add_subcommand_options, print_info};
+use super::super::super::args::fqdn::add_fqdn_options;
 use super::super::super::args::sharing_id::{
     add_subcommand_options as add_sharing_id_options, SharingSpace,
 };
+use super::super::super::command_handler::GandiSubCommandHandler;
+use super::super::super::config::Configuration;
+use super::super::super::display::{add_subcommand_options, print_info};
 use super::super::super::formatter::date_formatter;
 
 pub const ROUTE: &str = "/v5/domain/check";
@@ -162,12 +163,8 @@ impl GandiSubCommandHandler for DomainCheckCommand {
 
     /// Create the clap subcommand with its arguments.
     fn subcommand<'a, 'b>() -> App<'a, 'b> {
-        let subcommand = SubCommand::with_name(Self::COMMAND).arg(
-            Arg::with_name("FQDN")
-                .index(1)
-                .required(true)
-                .help("domain name to query"),
-        );
+        let subcommand = SubCommand::with_name(Self::COMMAND);
+        let subcommand = add_fqdn_options(subcommand);
         let subcommand = add_sharing_id_options(subcommand);
         add_subcommand_options(subcommand)
     }

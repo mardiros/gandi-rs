@@ -2,10 +2,11 @@
 use std::vec::Vec;
 
 use chrono::{DateTime, Utc};
-use clap::{App, Arg, ArgMatches, SubCommand};
+use clap::{App, ArgMatches, SubCommand};
 use reqwest::RequestBuilder;
 use serde::{Deserialize, Serialize};
 
+use super::super::super::args::fqdn::add_fqdn_options;
 use super::super::super::command_handler::GandiSubCommandHandler;
 use super::super::super::config::Configuration;
 use super::super::super::display::{
@@ -163,12 +164,8 @@ impl GandiSubCommandHandler for DomainShowCommand {
 
     /// Create the clap subcommand with its arguments.
     fn subcommand<'a, 'b>() -> App<'a, 'b> {
-        let subcommand = SubCommand::with_name(Self::COMMAND).arg(
-            Arg::with_name("FQDN")
-                .index(1)
-                .required(true)
-                .help("domain name to query"),
-        );
+        let subcommand = SubCommand::with_name(Self::COMMAND);
+        let subcommand = add_fqdn_options(subcommand);
         add_subcommand_options(subcommand)
     }
 }
