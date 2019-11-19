@@ -49,6 +49,11 @@ pub fn add_subcommand_options<'a, 'b>(app: App<'a, 'b>) -> App<'a, 'b> {
     )
 }
 
+/// Helper to simple line with color in the human format
+pub fn print_line(val: &str) {
+    println!("{}", val.green());
+}
+
 /// Helper to print line with color in the human format
 pub fn print_info(key: &str, val: &str) {
     println!("{}: {}", key.bright_blue(), val.green());
