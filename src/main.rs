@@ -45,9 +45,8 @@ fn run() -> GandiResult<()> {
             Arg::with_name("CONFIG")
                 .short("c")
                 .long("config")
-                .default_value("")
                 .takes_value(true)
-                .help("Number of element per page"),
+                .help("Extract Configuration from TOML file"),
         )
         .subcommand(
             SubCommand::with_name("check")
@@ -56,7 +55,7 @@ fn run() -> GandiResult<()> {
         )
         .subcommand(
             SubCommand::with_name("show")
-                .about("Used to retrieve informations")
+                .about("Used to retrieve informations from one resource in particulary")
                 .subcommand(DomainShowCommand::subcommand())
                 .subcommand(DomainContactsShowCommand::subcommand())
                 .subcommand(DomainGlueRecordsShowCommand::subcommand())
@@ -64,7 +63,7 @@ fn run() -> GandiResult<()> {
         )
         .subcommand(
             SubCommand::with_name("list")
-                .about("Used to retrieve informations")
+                .about("Used to list resources")
                 .subcommand(DomainListCommand::subcommand())
                 .subcommand(OrganizationListCommand::subcommand())
                 .subcommand(list_dns_subcommand()),

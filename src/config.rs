@@ -51,7 +51,7 @@ impl Default for Configuration {
 /// Retrieve the format from the clap subcommand arguments
 impl<'a> From<&'a ArgMatches<'a>> for Configuration {
     fn from(params: &ArgMatches<'a>) -> Self {
-        let filepath = params.value_of("CONFIG").unwrap().to_string();
+        let filepath = params.value_of("CONFIG").unwrap_or("").to_string();
         if filepath.len() > 0 {
             Configuration::from_file(filepath.as_str())
                 .map_err(|err| {
