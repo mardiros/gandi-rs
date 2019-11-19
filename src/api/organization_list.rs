@@ -8,10 +8,10 @@ use reqwest::RequestBuilder;
 use super::super::command_handler::GandiSubCommandHandler;
 use super::super::config::Configuration;
 use super::super::display::{add_subcommand_options, print_flag, print_info};
-use super::super::filter::pagination::{
+use super::super::args::pagination::{
     add_subcommand_options as add_pagination_options, Pagination,
 };
-use super::super::filter::sharing_id::{
+use super::super::args::sharing_id::{
     add_subcommand_options as add_sharing_id_options, SharingSpace,
 };
 

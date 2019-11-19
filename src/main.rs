@@ -6,6 +6,8 @@ use pretty_env_logger;
 
 /// api module
 mod api;
+/// Common params in the CLI that are repetitive
+mod args;
 /// CLI subcommand handler
 mod command_handler;
 /// CLI configuration
@@ -16,11 +18,11 @@ mod constants;
 mod display;
 /// error and result wrapping
 mod errors;
-/// params in the CLI that are send to ReqwestBuilder
-mod filter;
 /// serde helpers
 mod formatter;
 
+use api::dns::list::list_dns_subcommand;
+use api::dns::list_records::DnsRecordsListCommand;
 use api::domain::check::DomainCheckCommand;
 use api::domain::list::DomainListCommand;
 use api::domain::show::DomainShowCommand;
@@ -63,11 +65,13 @@ fn run() -> GandiResult<()> {
             SubCommand::with_name("list")
                 .about("Used to retrieve informations")
                 .subcommand(DomainListCommand::subcommand())
-                .subcommand(OrganizationListCommand::subcommand()),
+                .subcommand(OrganizationListCommand::subcommand())
+                .subcommand(list_dns_subcommand()),
         )
         .get_matches();
 
     let config = Configuration::from(&matches);
+    DnsRecordsListCommand::handle(&config, &matches)?;
     DomainCheckCommand::handle(&config, &matches)?;
     DomainShowCommand::handle(&config, &matches)?;
     DomainContactsShowCommand::handle(&config, &matches)?;

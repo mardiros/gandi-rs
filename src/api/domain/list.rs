@@ -11,10 +11,10 @@ use super::super::super::errors::GandiResult;
 use super::super::super::config::Configuration;
 use super::super::super::command_handler::GandiSubCommandHandler;
 use super::super::super::display::{add_subcommand_options, print_flag, print_info, print_tags};
-use super::super::super::filter::pagination::{
+use super::super::super::args::pagination::{
     add_subcommand_options as add_pagination_options, Pagination,
 };
-use super::super::super::filter::sharing_id::{
+use super::super::super::args::sharing_id::{
     add_subcommand_options as add_sharing_id_options, SharingSpace,
 };
 use super::super::super::formatter::date_formatter_z;
