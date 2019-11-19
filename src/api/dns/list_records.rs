@@ -60,8 +60,6 @@ impl GandiSubCommandHandler for DnsRecordsListCommand {
 
     /// Display the records important data
     fn display_human_result(items: Self::Item) {
-        //let total_count, domains = items;
-        //println!("Total count of domains: {}", total_count);
         for record in items {
             for val in record.rrset_values {
                 print_line(

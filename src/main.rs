@@ -27,7 +27,7 @@ use api::dns::list_snapshots::DnsSnapshotsListCommand;
 use api::domain::check::DomainCheckCommand;
 use api::domain::list::DomainListCommand;
 use api::domain::show::DomainShowCommand;
-use api::domain::show_contact::DomainContactsShowCommand;
+use api::domain::show_contacts::DomainContactsShowCommand;
 use api::domain::show_gluerecords::DomainGlueRecordsShowCommand;
 use api::organization_list::OrganizationListCommand;
 use api::user_info::UserInfoCommand;

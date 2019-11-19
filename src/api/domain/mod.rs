@@ -8,7 +8,7 @@ pub mod list;
 pub mod show;
 
 /// [domain's contacts show](https://api.gandi.net/docs/domains/#get-v5-domain-domains-domain-contacts) route binding
-pub mod show_contact;
+pub mod show_contacts;
 
 /// [domain's glue-record show](https://api.gandi.net/docs/domains/#get-v5-domain-domains-domain-hosts) route binding
 pub mod show_gluerecords;

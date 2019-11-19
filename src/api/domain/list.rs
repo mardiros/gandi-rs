@@ -157,8 +157,6 @@ impl GandiSubCommandHandler for DomainListCommand {
 
     /// Display the domain important data
     fn display_human_result(items: Self::Item) {
-        //let total_count, domains = items;
-        //println!("Total count of domains: {}", total_count);
         for domain in items {
             println!("");
             print_info("fqdn", domain.fqdn_unicode.as_str());

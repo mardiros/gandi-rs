@@ -14,7 +14,7 @@ use super::super::super::display::{
 };
 use super::super::super::formatter::date_formatter_z;
 use super::super::super::formatter::optional_date_formatter_z;
-use super::show_contact::{print_contacts, Contacts, SharingSpace};
+use super::show_contacts::{print_contacts, Contacts, SharingSpace};
 
 macro_rules! ROUTE {
     () => {
