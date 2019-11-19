@@ -23,6 +23,7 @@ mod formatter;
 
 use api::dns::list::list_dns_subcommand;
 use api::dns::list_records::DnsRecordsListCommand;
+use api::dns::list_snapshots::DnsSnapshotsListCommand;
 use api::domain::check::DomainCheckCommand;
 use api::domain::list::DomainListCommand;
 use api::domain::show::DomainShowCommand;
@@ -72,6 +73,7 @@ fn run() -> GandiResult<()> {
 
     let config = Configuration::from(&matches);
     DnsRecordsListCommand::handle(&config, &matches)?;
+    DnsSnapshotsListCommand::handle(&config, &matches)?;
     DomainCheckCommand::handle(&config, &matches)?;
     DomainShowCommand::handle(&config, &matches)?;
     DomainContactsShowCommand::handle(&config, &matches)?;
